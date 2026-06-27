@@ -21,9 +21,9 @@ function Login() {
               <Sparkles className="w-8 h-8 text-white" />
             </div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-accent-purple bg-clip-text text-transparent mb-2">
-              AI+IP打造
+              势能舱
             </h1>
-            <p className="text-gray-600">全流程智能IP建设平台</p>
+            <p className="text-gray-600">AI IP增长作战台</p>
           </div>
 
           <div className="flex mb-8 bg-gray-100 rounded-xl p-1">

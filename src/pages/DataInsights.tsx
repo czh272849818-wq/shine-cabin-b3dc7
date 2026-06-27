@@ -33,7 +33,7 @@ function DataInsights() {
           {
             role: 'system',
             content:
-              '你是AI+IP打造平台的数据分析师。用数据做诊断并给出可执行动作。输出必须结构化。',
+              '你是势能舱平台的数据分析师。用数据做诊断并给出可执行动作。输出必须结构化。',
           },
           {
             role: 'user',

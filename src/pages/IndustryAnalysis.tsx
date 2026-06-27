@@ -42,7 +42,7 @@ function IndustryAnalysis() {
           {
             role: 'system',
             content:
-              '你是AI+IP打造平台的行业分析专家。输出必须结构化、可执行、可复制。不要空话。',
+              '你是势能舱平台的行业分析专家。输出必须结构化、可执行、可复制。不要空话。',
           },
           {
             role: 'user',

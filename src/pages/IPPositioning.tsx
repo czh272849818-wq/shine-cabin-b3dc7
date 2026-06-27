@@ -35,7 +35,7 @@ function IPPositioning() {
           {
             role: 'system',
             content:
-              '你是AI+IP打造平台的IP定位与人设策略专家。输出要具体、可执行、可复制。不要空话。',
+              '你是势能舱平台的IP定位与人设策略专家。输出要具体、可执行、可复制。不要空话。',
           },
           {
             role: 'user',
