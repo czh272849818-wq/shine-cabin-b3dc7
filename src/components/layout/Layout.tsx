@@ -10,6 +10,7 @@ import {
   Sparkles,
   X,
   Send,
+  Orbit,
 } from 'lucide-react'
 import clsx from 'clsx'
 import { chatCompletion, type LlmMessage } from '@/services/llm'
@@ -44,36 +45,36 @@ function Layout() {
     if (path.startsWith('/analysis')) {
       return {
         title: '行业分析',
-        system: `你是“AI+IP打造”平台的行业分析专家。目标：帮助用户快速完成行业机会、竞品、用户痛点、内容切入点的分析，并给出可执行的内容与转化建议。输出要求：结构化分点、可直接落地。`,
+        system: `你是“势能舱”平台的行业分析专家。目标：帮助用户快速完成行业机会、竞品、用户痛点、内容切入点的分析，并给出可执行的内容与转化建议。输出要求：结构化分点、可直接落地。`,
       }
     }
     if (path.startsWith('/positioning')) {
       return {
         title: 'IP定位',
-        system: `你是“AI+IP打造”平台的IP定位与人设策略专家。目标：基于用户行业与资源，给出强人设、强反差、强真实的定位方案，并输出账号定位、标签、三句自我介绍、选题方向与避坑清单。`,
+        system: `你是“势能舱”平台的IP定位与人设策略专家。目标：基于用户行业与资源，给出强人设、强反差、强真实的定位方案，并输出账号定位、标签、三句自我介绍、选题方向与避坑清单。`,
       }
     }
     if (path.startsWith('/content')) {
       return {
         title: '内容工厂',
-        system: `你是“AI+IP打造”平台的内容导演与短视频编导。严格使用三大公式：1) 强人设+强反差+强真实=稳定涨粉；2) 痛点提问+行业揭秘+情绪共鸣=搞定完播；3) 固定挑战+随机结果+真实反应=爆款流量。输出要包含：开头3秒钩子、脚本结构、镜头/画面建议、口播文案、标题与封面文案。`,
+        system: `你是“势能舱”平台的内容导演与短视频编导。严格使用三大公式：1) 强人设+强反差+强真实=稳定涨粉；2) 痛点提问+行业揭秘+情绪共鸣=搞定完播；3) 固定挑战+随机结果+真实反应=爆款流量。输出要包含：开头3秒钩子、脚本结构、镜头/画面建议、口播文案、标题与封面文案。`,
       }
     }
     if (path.startsWith('/customers')) {
       return {
         title: '客户中心',
-        system: `你是“AI+IP打造”平台的线索运营与转化顾问。目标：把内容带来的线索做分层、跟进、事实跟踪与成交推进。输出要包含：线索分级规则、跟进话术、关键事实字段、下一步动作与风险预警。`,
+        system: `你是“势能舱”平台的线索运营与转化顾问。目标：把内容带来的线索做分层、跟进、事实跟踪与成交推进。输出要包含：线索分级规则、跟进话术、关键事实字段、下一步动作与风险预警。`,
       }
     }
     if (path.startsWith('/insights')) {
       return {
         title: '数据洞察',
-        system: `你是“AI+IP打造”平台的数据分析师。目标：从数据看问题，给出可执行的内容与转化优化策略。输出要包含：核心指标诊断、可能原因、验证方法、优先级建议与具体动作。`,
+        system: `你是“势能舱”平台的数据分析师。目标：从数据看问题，给出可执行的内容与转化优化策略。输出要包含：核心指标诊断、可能原因、验证方法、优先级建议与具体动作。`,
       }
     }
     return {
       title: '工作台',
-      system: `你是“AI+IP打造”平台的全流程教练。目标：帮助用户按行业分析→IP定位→账号装修→内容制作→流量承接→线索管理→账号分析→变现的流程推进。输出要包含：下一步最关键的3件事与今天就能执行的清单。`,
+      system: `你是“势能舱”平台的全流程教练。目标：帮助用户按行业分析→IP定位→内容制作→流量承接→线索管理→数据复盘→变现的流程推进。输出要包含：下一步最关键的3件事与今天就能执行的清单。`,
     }
   }, [location.pathname])
 
@@ -170,14 +171,19 @@ function Layout() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#F4F7F6]">
       <aside className="fixed left-0 top-0 z-40 w-64 h-screen bg-white border-r border-gray-200 shadow-lg">
         <div className="flex flex-col h-full">
           <div className="p-6 border-b border-gray-100">
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-accent-purple bg-clip-text text-transparent">
-              AI+IP打造
-            </h1>
-            <p className="text-xs text-gray-500 mt-1">全流程智能IP建设平台</p>
+            <div className="flex items-center gap-3">
+              <div className="w-11 h-11 rounded-2xl bg-primary flex items-center justify-center">
+                <Orbit className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-primary">势能舱</h1>
+                <p className="text-xs text-gray-500 mt-1">AI IP增长作战台</p>
+              </div>
+            </div>
           </div>
 
           <nav className="flex-1 p-4 space-y-2">
@@ -188,9 +194,9 @@ function Layout() {
                   key={item.name}
                   to={item.href}
                   className={clsx(
-                    'flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200',
+                    'flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200',
                     isActive
-                      ? 'bg-gradient-to-r from-primary to-accent-purple text-white shadow-lg'
+                      ? 'bg-primary text-white shadow-lg'
                       : 'text-gray-700 hover:bg-gray-100'
                   )}
                 >
@@ -202,14 +208,14 @@ function Layout() {
           </nav>
 
           <div className="p-4 border-t border-gray-100">
-            <div className="bg-gradient-to-br from-primary/10 to-accent-purple/10 rounded-xl p-4">
+            <div className="bg-[#F4F7F6] rounded-lg p-4 border border-gray-100">
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-accent-purple flex items-center justify-center text-white font-bold">
+                <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-bold">
                   V
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-gray-800">VIP用户</p>
-                  <p className="text-xs text-gray-500">专业版</p>
+                  <p className="text-sm font-semibold text-gray-800">增长负责人</p>
+                  <p className="text-xs text-gray-500">作战版</p>
                 </div>
               </div>
               <div className="text-xs text-gray-600">
@@ -232,16 +238,16 @@ function Layout() {
           <button
             type="button"
             onClick={() => setAssistantOpen(true)}
-            className="flex items-center gap-2 px-4 py-3 rounded-2xl bg-gradient-to-r from-primary to-accent-purple text-white shadow-lg hover:shadow-xl transition-shadow"
+            className="flex items-center gap-2 px-4 py-3 rounded-lg bg-primary text-white shadow-lg hover:shadow-xl transition-shadow"
           >
             <Sparkles className="w-5 h-5" />
             <span className="font-medium">AI助手</span>
           </button>
         ) : (
-          <div className="w-[380px] h-[520px] bg-white border border-gray-200 shadow-2xl rounded-2xl overflow-hidden flex flex-col">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-gradient-to-r from-primary/5 to-accent-purple/5">
+          <div className="w-[380px] h-[520px] bg-white border border-gray-200 shadow-2xl rounded-lg overflow-hidden flex flex-col">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-[#F4F7F6]">
               <div>
-                <p className="text-sm font-semibold text-gray-900">AI助手 · {moduleMeta.title}</p>
+                <p className="text-sm font-semibold text-gray-900">势能舱AI · {moduleMeta.title}</p>
                 <p className="text-xs text-gray-500">
                   {assistantHealth?.hasKey === false
                     ? '未检测到 Key（可在此窗口临时配置，避免写入前端代码）'

@@ -8,13 +8,13 @@ export default {
     extend: {
       colors: {
         primary: {
-          DEFAULT: '#1E3A5F',
-          light: '#2A4A73',
-          dark: '#152C4A',
+          DEFAULT: '#12343B',
+          light: '#1B4D57',
+          dark: '#0B2328',
         },
         accent: {
-          orange: '#FF6B35',
-          purple: '#7B68EE',
+          orange: '#F26D21',
+          purple: '#4F46E5',
         },
       },
       fontFamily: {
