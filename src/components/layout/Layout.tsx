@@ -33,7 +33,7 @@ function Layout() {
   const [assistantHealth, setAssistantHealth] = useState<{
     hasKey: boolean
     hasProcessEnvKey?: boolean
-    source?: 'processEnv' | 'envFile' | 'runtime' | null
+    source?: 'processEnv' | 'envFile' | 'runtime' | 'netlifyEnv' | null
   } | null>(null)
   const [assistantKeyDraft, setAssistantKeyDraft] = useState('')
   const [assistantKeySaving, setAssistantKeySaving] = useState(false)
@@ -172,11 +172,11 @@ function Layout() {
 
   return (
     <div className="min-h-screen bg-[#F4F7F6]">
-      <aside className="fixed left-0 top-0 z-40 w-64 h-screen bg-white border-r border-gray-200 shadow-lg">
+      <aside className="fixed left-0 top-0 z-40 h-screen w-64 border-r border-gray-200 bg-white">
         <div className="flex flex-col h-full">
           <div className="p-6 border-b border-gray-100">
             <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-2xl bg-primary flex items-center justify-center">
+              <div className="w-11 h-11 rounded-lg bg-primary flex items-center justify-center">
                 <Orbit className="w-6 h-6 text-white" />
               </div>
               <div>
@@ -196,7 +196,7 @@ function Layout() {
                   className={clsx(
                     'flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200',
                     isActive
-                      ? 'bg-primary text-white shadow-lg'
+                      ? 'bg-primary text-white'
                       : 'text-gray-700 hover:bg-gray-100'
                   )}
                 >
@@ -208,7 +208,7 @@ function Layout() {
           </nav>
 
           <div className="p-4 border-t border-gray-100">
-            <div className="bg-[#F4F7F6] rounded-lg p-4 border border-gray-100">
+            <div className="bg-[#F4F7F6] rounded-lg p-4 border border-gray-200">
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-bold">
                   V
@@ -238,7 +238,7 @@ function Layout() {
           <button
             type="button"
             onClick={() => setAssistantOpen(true)}
-            className="flex items-center gap-2 px-4 py-3 rounded-lg bg-primary text-white shadow-lg hover:shadow-xl transition-shadow"
+            className="flex items-center gap-2 px-4 py-3 rounded-lg bg-primary text-white shadow-lg transition-shadow"
           >
             <Sparkles className="w-5 h-5" />
             <span className="font-medium">AI助手</span>
@@ -280,6 +280,8 @@ function Layout() {
                             ? '环境文件（.env*）'
                             : assistantHealth.source === 'runtime'
                               ? '临时配置（运行时内存）'
+                              : assistantHealth.source === 'netlifyEnv'
+                                ? 'Netlify环境变量'
                               : '未知'}
                       </p>
                     </div>

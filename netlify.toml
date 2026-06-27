@@ -2,6 +2,19 @@
   command = "npm run build"
   publish = "dist"
 
+[functions]
+  directory = "netlify/functions"
+
+[[redirects]]
+  from = "/api/llm/chat"
+  to = "/.netlify/functions/llm-chat"
+  status = 200
+
+[[redirects]]
+  from = "/api/llm/health"
+  to = "/.netlify/functions/llm-health"
+  status = 200
+
 [[redirects]]
   from = "/*"
   to = "/index.html"
