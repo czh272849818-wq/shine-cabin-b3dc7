@@ -82,6 +82,8 @@ function DataInsights() {
 - 完播率：${metrics.completionRate}%
 - 线索数：${currentWorkspace.leads.length}
 - 成交数：${metrics.deals}
+- 当前选题：${currentWorkspace.workflow.topic || '未保存'}
+- 当前定位：${currentWorkspace.workflow.positioning || '未保存'}
 
 TOP内容：
 ${topContent.map((item) => `- ${item.platform} / ${item.title} / ${item.signal} / 完播${item.completionRate}%`).join('\n') || '暂无内容数据'}

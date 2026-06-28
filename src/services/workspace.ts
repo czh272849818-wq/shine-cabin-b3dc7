@@ -43,10 +43,17 @@ export type ContentSignal = {
   createdAt: string
 }
 
+export type WorkflowState = {
+  topic: string
+  positioning: string
+  updatedAt: string
+}
+
 export type WorkspaceData = {
   leads: Lead[]
   metrics: WorkspaceMetrics
   contents: ContentSignal[]
+  workflow: WorkflowState
   createdAt: string
   updatedAt: string
 }
@@ -66,6 +73,11 @@ export const emptyWorkspace = (): WorkspaceData => {
       deals: 0,
     },
     contents: [],
+    workflow: {
+      topic: '',
+      positioning: '',
+      updatedAt: now,
+    },
     createdAt: now,
     updatedAt: now,
   }
@@ -146,6 +158,7 @@ export function normalizeWorkspace(input: Partial<WorkspaceData> | null | undefi
     leads: Array.isArray(input?.leads) ? input.leads.map(normalizeLeadRecord) : [],
     metrics: { ...empty.metrics, ...(input?.metrics || {}) },
     contents: Array.isArray(input?.contents) ? input.contents.map(normalizeContentRecord) : [],
+    workflow: normalizeWorkflow(input?.workflow),
   }
 }
 
@@ -170,6 +183,15 @@ function normalizeContentRecord(item: Partial<ContentSignal>): ContentSignal {
     signal: item.signal || '',
     completionRate: Number(item.completionRate) || 0,
     createdAt: item.createdAt || new Date().toISOString(),
+  }
+}
+
+function normalizeWorkflow(item: Partial<WorkflowState> | null | undefined): WorkflowState {
+  const now = new Date().toISOString()
+  return {
+    topic: item?.topic || '',
+    positioning: item?.positioning || '',
+    updatedAt: item?.updatedAt || now,
   }
 }
 

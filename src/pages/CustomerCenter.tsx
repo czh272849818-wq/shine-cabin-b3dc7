@@ -68,6 +68,9 @@ function CustomerCenter() {
 真实线索：
 ${visibleLeads.map((lead) => `- ${lead.name} / ${lead.source} / ${lead.platform} / ${lead.level}级 / ${lead.status} / ${lead.need || '未记录需求'}`).join('\n') || '暂无线索'}
 
+当前选题：${currentWorkspace.workflow.topic || '未保存'}
+当前定位：${currentWorkspace.workflow.positioning || '未保存'}
+
 补充背景：${context.trim() || '通过短视频和图文获得咨询，需要把线索推进到预约或成交。'}
 
 请输出：

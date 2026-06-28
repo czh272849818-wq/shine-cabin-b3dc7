@@ -3,12 +3,16 @@ import { ArrowRight, Compass, Sparkles } from 'lucide-react'
 import clsx from 'clsx'
 import { Link } from 'react-router-dom'
 import { creatorStages, streamCreatorAdvice } from '@/services/creator'
+import { emptyWorkspace } from '@/services/workspace'
+import { useWorkspace } from '@/hooks/useWorkspace'
 
 function IndustryAnalysis() {
   const [topic, setTopic] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [report, setReport] = useState('')
+  const { workspace, save } = useWorkspace()
+  const currentWorkspace = workspace ?? emptyWorkspace()
 
   const generateReport = async () => {
     if (loading) return
@@ -30,6 +34,16 @@ function IndustryAnalysis() {
 `.trim(),
         setReport
       )
+      try {
+        await save({
+          ...currentWorkspace,
+          workflow: {
+            ...currentWorkspace.workflow,
+            topic: topic.trim(),
+            updatedAt: new Date().toISOString(),
+          },
+        })
+      } catch {}
     } catch (e) {
       setError(e instanceof Error ? e.message : '生成失败')
     } finally {

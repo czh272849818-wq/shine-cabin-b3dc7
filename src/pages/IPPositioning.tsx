@@ -3,6 +3,8 @@ import { ArrowRight, BadgeCheck, Sparkles, Target } from 'lucide-react'
 import clsx from 'clsx'
 import { Link } from 'react-router-dom'
 import { streamCreatorAdvice } from '@/services/creator'
+import { emptyWorkspace } from '@/services/workspace'
+import { useWorkspace } from '@/hooks/useWorkspace'
 
 const dimensions = [
   { label: '账号角色', value: '内容创作者 / 实拍博主 / 讲解型账号 / 带货型账号 / 多平台分发账号' },
@@ -15,6 +17,8 @@ function IPPositioning() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [result, setResult] = useState('')
+  const { workspace, save } = useWorkspace()
+  const currentWorkspace = workspace ?? emptyWorkspace()
 
   const generate = async () => {
     if (loading) return
@@ -37,6 +41,16 @@ function IPPositioning() {
 `.trim(),
         setResult
       )
+      try {
+        await save({
+          ...currentWorkspace,
+          workflow: {
+            ...currentWorkspace.workflow,
+            positioning: brief.trim(),
+            updatedAt: new Date().toISOString(),
+          },
+        })
+      } catch {}
     } catch (e) {
       setError(e instanceof Error ? e.message : '生成失败')
     } finally {

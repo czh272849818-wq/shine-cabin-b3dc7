@@ -22,6 +22,7 @@ function Dashboard() {
   const { workspace, loading: workspaceLoading, error: workspaceError } = useWorkspace()
   const leads = workspace?.leads ?? []
   const data = workspace?.metrics
+  const workflow = workspace?.workflow
   const contentByPlatform = creatorPlatforms.map((platform) => ({
     platform,
     count: (workspace?.contents ?? []).filter((item) => item.platform === platform).length,
@@ -63,6 +64,8 @@ function Dashboard() {
 - 互动率：${data?.engagementRate ?? 0}%
 - 完播率：${data?.completionRate ?? 0}%
 - 内容信号：${(workspace?.contents ?? []).map((item) => `${item.title}/${item.signal}/${item.completionRate}%`).join('；') || '暂无'}
+- 当前选题：${workflow?.topic || '未保存'}
+- 当前定位：${workflow?.positioning || '未保存'}
 
 补充信息：${context.trim() || '暂无补充。'}
 
@@ -121,6 +124,25 @@ function Dashboard() {
             <p className="mt-3 text-3xl font-bold text-gray-950">{item.value}</p>
           </div>
         ))}
+      </section>
+
+      <section className="rounded-lg border border-gray-200 bg-white p-5">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <h2 className="text-xl font-bold text-gray-950">当前工作流</h2>
+            <p className="mt-1 text-sm text-gray-500">上一环的判断会自动带到下一环，不用重复整理。</p>
+          </div>
+        </div>
+        <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
+          <div className="rounded-lg bg-gray-50 p-4">
+            <p className="text-xs font-semibold text-gray-500">选题</p>
+            <p className="mt-2 text-sm font-semibold text-gray-950">{workflow?.topic || '还没有保存选题'}</p>
+          </div>
+          <div className="rounded-lg bg-gray-50 p-4">
+            <p className="text-xs font-semibold text-gray-500">定位</p>
+            <p className="mt-2 text-sm font-semibold text-gray-950">{workflow?.positioning || '还没有保存定位'}</p>
+          </div>
+        </div>
       </section>
 
       <section className="rounded-lg border border-gray-200 bg-white p-5">

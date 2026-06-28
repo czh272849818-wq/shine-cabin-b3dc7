@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { FileText, Image as ImageIcon, Play, Sparkles, Video, ArrowRight } from 'lucide-react'
 import clsx from 'clsx'
 import { Link } from 'react-router-dom'
@@ -31,6 +31,15 @@ function ContentFactory() {
   const { workspace, save, saving } = useWorkspace()
   const currentWorkspace = workspace ?? emptyWorkspace()
 
+  useEffect(() => {
+    if (!topic && currentWorkspace.workflow.topic) {
+      setTopic(currentWorkspace.workflow.topic)
+    }
+    if (!context && currentWorkspace.workflow.positioning) {
+      setContext(currentWorkspace.workflow.positioning)
+    }
+  }, [context, currentWorkspace.workflow.positioning, currentWorkspace.workflow.topic, topic])
+
   const generate = async () => {
     if (!topic.trim()) {
       setError('请先输入一个具体主题')
@@ -53,6 +62,8 @@ function ContentFactory() {
 需要输出的平台：${platformList}
 主题：${topic.trim()}
 背景：${context.trim() || '本地服务型IP，需要通过内容获客并转化线索。'}
+上一环选题：${currentWorkspace.workflow.topic || '未保存'}
+上一环定位：${currentWorkspace.workflow.positioning || '未保存'}
 
 请输出：
 1. 一条主内容稿
@@ -99,6 +110,12 @@ function ContentFactory() {
           <p className="text-sm font-semibold text-primary">发布台</p>
           <h1 className="mt-2 text-3xl font-bold text-gray-950">把选题变成可直接发布的内容包</h1>
           <p className="mt-2 text-sm text-gray-500">从脚本到标题、封面、评论区引导，统一输出同一条内容链，并适配多平台。</p>
+          {(currentWorkspace.workflow.topic || currentWorkspace.workflow.positioning) ? (
+            <p className="mt-2 text-xs text-gray-500">
+              已接入上一环：{currentWorkspace.workflow.topic || '未保存选题'}
+              {currentWorkspace.workflow.positioning ? ` / ${currentWorkspace.workflow.positioning}` : ''}
+            </p>
+          ) : null}
         </div>
         <button
           type="button"

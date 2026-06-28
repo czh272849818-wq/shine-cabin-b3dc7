@@ -53,6 +53,11 @@ function createEmptyWorkspace() {
       deals: 0,
     },
     contents: [],
+    workflow: {
+      topic: '',
+      positioning: '',
+      updatedAt: now,
+    },
     createdAt: now,
     updatedAt: now,
   }
@@ -66,6 +71,7 @@ function sanitizeWorkspace(body) {
     leads: Array.isArray(body.leads) ? body.leads.map(sanitizeLead).filter(Boolean) : [],
     metrics: sanitizeMetrics(body.metrics),
     contents: Array.isArray(body.contents) ? body.contents.map(sanitizeContent).filter(Boolean) : [],
+    workflow: sanitizeWorkflow(body.workflow),
   }
 }
 
@@ -103,6 +109,14 @@ function sanitizeContent(item) {
     signal: stringValue(item.signal),
     completionRate: numberValue(item.completionRate),
     createdAt: stringValue(item.createdAt) || new Date().toISOString(),
+  }
+}
+
+function sanitizeWorkflow(workflow = {}) {
+  return {
+    topic: stringValue(workflow.topic),
+    positioning: stringValue(workflow.positioning),
+    updatedAt: stringValue(workflow.updatedAt) || new Date().toISOString(),
   }
 }
 
