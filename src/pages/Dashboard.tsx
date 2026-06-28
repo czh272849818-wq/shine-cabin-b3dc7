@@ -6,11 +6,11 @@ import { chatCompletionStream } from '@/services/llm'
 import { useWorkspace } from '@/hooks/useWorkspace'
 
 const modules = [
-  { title: '选题池', desc: '先找题，再开拍', icon: Compass, href: '/analysis' },
-  { title: '脚本室', desc: '把选题变成镜头', icon: PenTool, href: '/positioning' },
-  { title: '发布台', desc: '统一标题和引导', icon: Send, href: '/content' },
-  { title: '复盘台', desc: '只看能改动作的数据', icon: Repeat, href: '/insights' },
-  { title: '变现台', desc: '把流量导向成交', icon: DollarSign, href: '/customers' },
+  { title: '选题池', desc: '先找题，再做多平台复用', icon: Compass, href: '/analysis' },
+  { title: '脚本室', desc: '把选题拆成平台版本', icon: PenTool, href: '/positioning' },
+  { title: '发布台', desc: '统一分发和包装', icon: Send, href: '/content' },
+  { title: '复盘台', desc: '看哪个平台更划算', icon: Repeat, href: '/insights' },
+  { title: '变现台', desc: '把跨平台流量导向成交', icon: DollarSign, href: '/customers' },
 ]
 
 function Dashboard() {
@@ -30,7 +30,7 @@ function Dashboard() {
   ]
   const priorities = [
     leads.length === 0 ? '先去变现台录入第一批真实线索，建立可跟进事实' : '优先跟进A级线索，确认下一步动作',
-    data?.completionRate ? '去复盘台筛选高完播内容，复刻结构' : '去复盘台录入内容数据，找到真实内容约束',
+    data?.completionRate ? '去复盘台筛选高完播内容，判断哪个平台更有效' : '去复盘台录入内容数据，找到真实内容约束',
     data?.deals ? '复盘成交路径，沉淀成跟进模板' : '去变现台设置本周成交目标，开始记录成交数',
   ]
 
@@ -89,10 +89,10 @@ function Dashboard() {
           <div>
             <p className="text-sm font-semibold text-primary">势能舱</p>
             <h1 className="mt-2 max-w-3xl text-4xl font-bold leading-tight text-gray-950">
-              用AI把选题、脚本、发布、复盘和变现串成一个闭环。
+              用AI把一条内容变成多平台分发、复盘和变现的闭环。
             </h1>
             <p className="mt-4 max-w-2xl text-sm leading-6 text-gray-600">
-              目标不是多发内容，而是让每一次选题都能带着脚本、发布、数据和成交往下走。
+              目标不是多发内容，而是让每一次选题都能变成可复用、可分发、可复盘、可成交的资产。
             </p>
           </div>
           <button
@@ -167,12 +167,12 @@ function Dashboard() {
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-xl font-bold text-gray-950">产品说明</h2>
-            <p className="mt-1 text-sm text-gray-500">面向自媒体工作者的云端工作台，数据与 AI 都走 Netlify。</p>
+            <p className="mt-1 text-sm text-gray-500">面向全平台自媒体创作者的云端工作台，支持一套内容多平台分发。</p>
           </div>
           <ArrowRight className="h-5 w-5 text-gray-400" />
         </div>
         <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-3">
-          {['邮箱注册登录', '选题到变现闭环', '云端工作区数据'].map((item) => (
+          {['邮箱注册登录', '一套内容多平台分发', '云端工作区数据'].map((item) => (
             <div key={item} className="rounded-lg bg-gray-50 p-4 text-sm font-semibold text-gray-700">
               {item}
             </div>

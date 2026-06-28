@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { ArrowRight, Compass, Sparkles } from 'lucide-react'
 import clsx from 'clsx'
+import { Link } from 'react-router-dom'
 import { creatorStages, streamCreatorAdvice } from '@/services/creator'
 
 function IndustryAnalysis() {
@@ -20,9 +21,9 @@ function IndustryAnalysis() {
         `
 账号定位：${topic.trim() || '自媒体工作者'}
 
-请围绕“选题”给出一个 7 天选题飞轮：
+请围绕“多平台选题”给出一个 7 天选题飞轮：
 1. 用户最需要拍的内容是什么
-2. 什么内容最容易拿到播放、完播、互动
+2. 什么内容最容易在抖音、小红书、视频号、B站被接受
 3. 如何建立稳定选题池
 4. 明天就能拍的 10 个选题
 5. 每类选题的标题公式
@@ -40,8 +41,9 @@ function IndustryAnalysis() {
     <div className="space-y-6">
       <header className="flex items-end justify-between gap-4">
         <div>
-          <p className="text-sm font-semibold text-primary">选题引擎</p>
+          <p className="text-sm font-semibold text-primary">多平台选题引擎</p>
           <h1 className="mt-2 text-3xl font-bold text-gray-950">先找题，再开拍</h1>
+          <p className="mt-2 text-sm text-gray-500">同一个选题先判断是否值得在多个平台同步分发。</p>
         </div>
         <button
           type="button"
@@ -63,11 +65,11 @@ function IndustryAnalysis() {
           <textarea
             value={topic}
             onChange={(e) => setTopic(e.target.value)}
-            placeholder="输入账号领域、受众、变现方式、发布平台。"
+            placeholder="输入账号领域、受众、变现方式、主要平台。"
             className="mt-4 h-40 w-full resize-none rounded-lg border border-gray-200 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-primary/20"
           />
           <div className="mt-4 rounded-lg bg-gray-50 p-4 text-sm leading-6 text-gray-600">
-            这个模块不再做行业宏观分析，只回答自媒体工作者最先要解决的选题问题。
+            这个模块不再做行业宏观分析，只回答自媒体工作者最先要解决的多平台选题问题。
           </div>
         </div>
 
@@ -97,6 +99,19 @@ function IndustryAnalysis() {
           <div className="whitespace-pre-wrap text-sm leading-7 text-gray-800">{report}</div>
         </section>
       ) : null}
+
+      <section className="rounded-lg border border-gray-200 bg-white p-5">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <h2 className="text-xl font-bold text-gray-950">下一步</h2>
+            <p className="mt-1 text-sm text-gray-500">选题定下来后，直接去脚本室拆成各平台版本。</p>
+          </div>
+          <Link to="/positioning" className="flex items-center gap-2 text-sm font-semibold text-primary">
+            去脚本室
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+      </section>
     </div>
   )
 }

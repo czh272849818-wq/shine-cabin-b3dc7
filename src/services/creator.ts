@@ -8,11 +8,11 @@ export const creatorStages: Array<{
   title: string
   desc: string
 }> = [
-  { key: 'idea', label: '选题', title: '找对要拍什么', desc: '把热点、用户痛点和账号方向压成选题池。' },
-  { key: 'script', label: '脚本', title: '把选题变成镜头', desc: '给出开头钩子、结构、镜头和口播。' },
-  { key: 'publish', label: '发布', title: '安排发布时间与包装', desc: '统一标题、封面、标签、评论区引导。' },
-  { key: 'review', label: '复盘', title: '找出真正有效的内容', desc: '看播放、完播、互动和转化。' },
-  { key: 'monetize', label: '变现', title: '接住线索和成交', desc: '把流量导向咨询、私信、表单或成交页。' },
+  { key: 'idea', label: '选题', title: '找适合多平台复用的题', desc: '把热点、用户痛点和账号方向压成能分发到多个平台的选题池。' },
+  { key: 'script', label: '脚本', title: '把选题拆成平台版本', desc: '给出通用脚本，以及抖音、小红书、视频号、B站的不同表达。' },
+  { key: 'publish', label: '发布', title: '安排多平台包装与发布时间', desc: '统一标题、封面、标签和评论区引导，并适配不同平台格式。' },
+  { key: 'review', label: '复盘', title: '找出哪个平台真正有效', desc: '看播放、完播、互动、收藏和转化，判断哪种分发最划算。' },
+  { key: 'monetize', label: '变现', title: '接住跨平台线索和成交', desc: '把流量导向咨询、私信、表单或成交页，并记录来源平台。' },
 ]
 
 export async function streamCreatorAdvice(
@@ -26,7 +26,7 @@ export async function streamCreatorAdvice(
       {
         role: 'system',
         content:
-          '你是自媒体工作台的增长教练。你只输出自媒体工作者真正需要的执行清单，拒绝空话。结果必须能直接拿去发、拍、剪、复盘。',
+          '你是全平台自媒体工作台的增长教练。你只输出自媒体工作者真正需要的执行清单，拒绝空话。结果必须能直接拿去发、拍、剪、分发、复盘。',
       },
       {
         role: 'user',

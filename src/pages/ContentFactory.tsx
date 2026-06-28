@@ -6,6 +6,7 @@ import { chatCompletionStream } from '@/services/llm'
 
 type Mode = 'video' | 'graphic'
 type Goal = '涨粉' | '完播' | '转化'
+type Platform = '抖音' | '小红书' | '视频号' | 'B站'
 
 const contentMix = [
   { label: '人设', desc: '建立信任' },
@@ -16,6 +17,7 @@ const contentMix = [
 function ContentFactory() {
   const [mode, setMode] = useState<Mode>('video')
   const [goal, setGoal] = useState<Goal>('转化')
+  const [platform, setPlatform] = useState<Platform>('抖音')
   const [topic, setTopic] = useState('')
   const [context, setContext] = useState('')
   const [loading, setLoading] = useState(false)
@@ -38,18 +40,20 @@ function ContentFactory() {
           role: 'user',
           content: `
 内容形态：${mode === 'video' ? '短视频' : '图文'}
+平台：${platform}
 目标：${goal}
 主题：${topic.trim()}
 背景：${context.trim() || '本地服务型IP，需要通过内容获客并转化线索。'}
 
 请输出：
-1. 标题10个
+1. 适合该平台的标题10个
 2. 开头钩子3个
 3. 正文/口播脚本，按时间或段落拆分
 4. 画面/配图规划
 5. 评论区引导
 6. 私信关键词和回复话术
-7. 发布后看哪3个指标判断是否有效
+7. 另外给出抖音、小红书、视频号、B站四个平台的改写建议
+8. 发布后看哪3个指标判断是否有效
 `.trim(),
         },
       ], {
@@ -68,7 +72,7 @@ function ContentFactory() {
         <div>
           <p className="text-sm font-semibold text-primary">发布台</p>
           <h1 className="mt-2 text-3xl font-bold text-gray-950">把选题变成可直接发布的内容包</h1>
-          <p className="mt-2 text-sm text-gray-500">从脚本到标题、封面、评论区引导，统一输出同一条内容链。</p>
+          <p className="mt-2 text-sm text-gray-500">从脚本到标题、封面、评论区引导，统一输出同一条内容链，并适配多平台。</p>
         </div>
         <button
           type="button"
@@ -83,6 +87,22 @@ function ContentFactory() {
 
       <section className="grid grid-cols-1 gap-6 lg:grid-cols-[1.2fr_0.8fr]">
         <div className="rounded-lg border border-gray-200 bg-white p-5">
+          <div className="flex items-center gap-2 text-sm font-semibold text-gray-950">
+            <span className="text-primary">平台</span>
+          </div>
+          <div className="mt-4 grid grid-cols-2 gap-2 md:grid-cols-4">
+            {(['抖音', '小红书', '视频号', 'B站'] as Platform[]).map((item) => (
+              <button
+                key={item}
+                type="button"
+                onClick={() => setPlatform(item)}
+                className={clsx('rounded-lg border px-3 py-2 text-sm font-semibold', platform === item ? 'border-primary bg-primary text-white' : 'border-gray-200 text-gray-700')}
+              >
+                {item}
+              </button>
+            ))}
+          </div>
+
           <div className="flex gap-2">
             {(['video', 'graphic'] as Mode[]).map((item) => (
               <button
