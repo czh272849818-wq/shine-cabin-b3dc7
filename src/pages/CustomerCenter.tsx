@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { ArrowRight, MessageSquare, Phone, Sparkles, Users } from 'lucide-react'
 import clsx from 'clsx'
+import { Link } from 'react-router-dom'
 import { chatCompletionStream } from '@/services/llm'
 import { useWorkspace } from '@/hooks/useWorkspace'
 import { emptyWorkspace, type Lead } from '@/services/workspace'
@@ -84,6 +85,7 @@ ${visibleLeads.map((lead) => `- ${lead.name} / ${lead.source} / ${lead.level}级
         <div>
           <p className="text-sm font-semibold text-primary">变现台</p>
           <h1 className="mt-2 text-3xl font-bold text-gray-950">把咨询变成可推进的成交动作</h1>
+          <p className="mt-2 text-sm text-gray-500">这里不做泛泛的销售管理，只负责把线索推进到预约、咨询或成交。</p>
         </div>
         <button
           type="button"
@@ -194,6 +196,19 @@ ${visibleLeads.map((lead) => `- ${lead.name} / ${lead.source} / ${lead.level}级
             placeholder="补充：产品、客单价、常见异议、成交方式、你希望下一步推进到哪里。"
             className="mt-3 h-44 w-full resize-none rounded-lg border border-gray-200 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-primary/20"
           />
+        </div>
+      </section>
+
+      <section className="rounded-lg border border-gray-200 bg-white p-5">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <h2 className="text-xl font-bold text-gray-950">上一环</h2>
+            <p className="mt-1 text-sm text-gray-500">如果线索不够，先回到发布台和复盘台，找出哪条内容带来更高质量咨询。</p>
+          </div>
+          <Link to="/content" className="flex items-center gap-2 text-sm font-semibold text-primary">
+            去发布台
+            <ArrowRight className="h-4 w-4" />
+          </Link>
         </div>
       </section>
 

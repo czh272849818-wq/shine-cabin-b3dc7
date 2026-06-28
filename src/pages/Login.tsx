@@ -100,7 +100,7 @@ function Login() {
 
             <div className="mb-5 rounded-lg bg-gray-50 p-4">
               <p className="text-sm font-semibold text-gray-950">邮箱{authMode === 'login' ? '登录' : '注册'}</p>
-              <p className="mt-1 text-xs leading-5 text-gray-500">完成后直接进入自媒体工作流。</p>
+              <p className="mt-1 text-xs leading-5 text-gray-500">完成后直接进入自媒体工作流，只使用邮箱。</p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">

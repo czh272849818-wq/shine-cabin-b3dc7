@@ -1,14 +1,16 @@
 import { useState } from 'react'
-import { ArrowRight, Compass, DollarSign, PenTool, Repeat, Send } from 'lucide-react'
+import { ArrowRight, Compass, DollarSign, PenTool, Repeat, Send, ArrowUpRight } from 'lucide-react'
 import clsx from 'clsx'
+import { Link } from 'react-router-dom'
 import { chatCompletionStream } from '@/services/llm'
 import { useWorkspace } from '@/hooks/useWorkspace'
 
 const modules = [
-  { title: '选题池', desc: '找内容方向', icon: Compass },
-  { title: '脚本室', desc: '写镜头和口播', icon: PenTool },
-  { title: '复盘台', desc: '看数据找问题', icon: Repeat },
-  { title: '变现台', desc: '接住线索成交', icon: DollarSign },
+  { title: '选题池', desc: '先找题，再开拍', icon: Compass, href: '/analysis' },
+  { title: '脚本室', desc: '把选题变成镜头', icon: PenTool, href: '/positioning' },
+  { title: '发布台', desc: '统一标题和引导', icon: Send, href: '/content' },
+  { title: '复盘台', desc: '只看能改动作的数据', icon: Repeat, href: '/insights' },
+  { title: '变现台', desc: '把流量导向成交', icon: DollarSign, href: '/customers' },
 ]
 
 function Dashboard() {
@@ -27,9 +29,9 @@ function Dashboard() {
     { label: '完播率', value: `${(data?.completionRate ?? 0).toFixed(1)}%` },
   ]
   const priorities = [
-    leads.length === 0 ? '先录入第一批真实线索，建立可跟进事实' : '优先跟进A级线索，确认下一步动作',
-    data?.completionRate ? '根据完播率筛选高潜内容，复刻结构' : '录入内容数据，找到真实内容约束',
-    data?.deals ? '复盘成交路径，沉淀成跟进模板' : '设置本周成交目标，开始记录成交数',
+    leads.length === 0 ? '先去变现台录入第一批真实线索，建立可跟进事实' : '优先跟进A级线索，确认下一步动作',
+    data?.completionRate ? '去复盘台筛选高完播内容，复刻结构' : '去复盘台录入内容数据，找到真实内容约束',
+    data?.deals ? '复盘成交路径，沉淀成跟进模板' : '去变现台设置本周成交目标，开始记录成交数',
   ]
 
   const generatePlan = async () => {
@@ -87,10 +89,10 @@ function Dashboard() {
           <div>
             <p className="text-sm font-semibold text-primary">势能舱</p>
             <h1 className="mt-2 max-w-3xl text-4xl font-bold leading-tight text-gray-950">
-              用AI把选题、脚本、发布、复盘和变现压缩成一个工作流。
+              用AI把选题、脚本、发布、复盘和变现串成一个闭环。
             </h1>
             <p className="mt-4 max-w-2xl text-sm leading-6 text-gray-600">
-              目标不是多发内容，而是持续产出可拍、可发、可复盘、可变现的内容动作。
+              目标不是多发内容，而是让每一次选题都能带着脚本、发布、数据和成交往下走。
             </p>
           </div>
           <button
@@ -145,14 +147,18 @@ function Dashboard() {
       </section>
 
       <section className="rounded-lg border border-gray-200 bg-white p-5">
-          <h2 className="text-xl font-bold text-gray-950">内容工作流</h2>
-        <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-4">
+        <h2 className="text-xl font-bold text-gray-950">内容工作流</h2>
+        <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-5">
           {modules.map((item) => (
-            <div key={item.title} className="rounded-lg border border-gray-100 p-4">
+            <Link key={item.title} to={item.href} className="rounded-lg border border-gray-100 p-4 transition hover:border-primary/30 hover:bg-gray-50">
               <item.icon className="h-5 w-5 text-primary" />
               <p className="mt-4 font-semibold text-gray-950">{item.title}</p>
               <p className="mt-1 text-sm text-gray-500">{item.desc}</p>
-            </div>
+              <div className="mt-4 flex items-center gap-2 text-xs font-semibold text-primary">
+                进入
+                <ArrowUpRight className="h-3.5 w-3.5" />
+              </div>
+            </Link>
           ))}
         </div>
       </section>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { ArrowDown, ArrowRight, ArrowUp, BarChart3, Sparkles } from 'lucide-react'
 import clsx from 'clsx'
+import { Link } from 'react-router-dom'
 import { chatCompletionStream } from '@/services/llm'
 import { useWorkspace } from '@/hooks/useWorkspace'
 import { emptyWorkspace, type ContentSignal, type WorkspaceMetrics } from '@/services/workspace'
@@ -109,6 +110,7 @@ ${topContent.map((item) => `- ${item.title} / ${item.signal} / 完播${item.comp
         <div>
           <p className="text-sm font-semibold text-primary">复盘台</p>
           <h1 className="mt-2 text-3xl font-bold text-gray-950">只看能改变动作的数据</h1>
+          <p className="mt-2 text-sm text-gray-500">把播放、完播、互动和线索放在一起看，找到下一轮优化点。</p>
         </div>
         <button
           type="button"
@@ -220,6 +222,19 @@ ${topContent.map((item) => `- ${item.title} / ${item.signal} / 完播${item.comp
             placeholder="输入本周发布数量、线索数、成交数、最想提升的指标。"
             className="mt-3 h-44 w-full resize-none rounded-lg border border-gray-200 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-primary/20"
           />
+        </div>
+      </section>
+
+      <section className="rounded-lg border border-gray-200 bg-white p-5">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <h2 className="text-xl font-bold text-gray-950">下一步</h2>
+            <p className="mt-1 text-sm text-gray-500">复盘结论要回流到选题池和脚本室，下一轮内容才会更准。</p>
+          </div>
+          <Link to="/analysis" className="flex items-center gap-2 text-sm font-semibold text-primary">
+            去选题池
+            <ArrowRight className="h-4 w-4" />
+          </Link>
         </div>
       </section>
 

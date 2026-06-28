@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { FileText, Image as ImageIcon, Play, Sparkles, Video } from 'lucide-react'
+import { FileText, Image as ImageIcon, Play, Sparkles, Video, ArrowRight } from 'lucide-react'
 import clsx from 'clsx'
+import { Link } from 'react-router-dom'
 import { chatCompletionStream } from '@/services/llm'
 
 type Mode = 'video' | 'graphic'
@@ -66,7 +67,8 @@ function ContentFactory() {
       <header className="flex items-end justify-between gap-4">
         <div>
           <p className="text-sm font-semibold text-primary">发布台</p>
-          <h1 className="mt-2 text-3xl font-bold text-gray-950">把一个问题变成一条可发布内容</h1>
+          <h1 className="mt-2 text-3xl font-bold text-gray-950">把选题变成可直接发布的内容包</h1>
+          <p className="mt-2 text-sm text-gray-500">从脚本到标题、封面、评论区引导，统一输出同一条内容链。</p>
         </div>
         <button
           type="button"
@@ -143,6 +145,19 @@ function ContentFactory() {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      <section className="rounded-lg border border-gray-200 bg-white p-5">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <h2 className="text-xl font-bold text-gray-950">下一步</h2>
+            <p className="mt-1 text-sm text-gray-500">发布后把数据带到复盘台，确认下一轮要优化什么。</p>
+          </div>
+          <Link to="/insights" className="flex items-center gap-2 text-sm font-semibold text-primary">
+            去复盘台
+            <ArrowRight className="h-4 w-4" />
+          </Link>
         </div>
       </section>
 

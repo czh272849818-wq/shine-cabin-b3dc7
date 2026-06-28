@@ -41,31 +41,31 @@ function Layout() {
     if (path.startsWith('/analysis')) {
       return {
         title: '选题池',
-        system: '你是自媒体选题教练。只给选题、标题、角度和选题池，不要讲行业大道理。',
+        system: '你是自媒体选题教练。只给选题、标题、角度和选题池，不要讲行业大道理。结尾提醒用户下一步去脚本室。',
       }
     }
     if (path.startsWith('/positioning')) {
       return {
         title: '脚本室',
-        system: '你是自媒体脚本教练。只给账号定位、表达结构、开头钩子、镜头建议和口播，不要空话。',
+        system: '你是自媒体脚本教练。只给账号定位、表达结构、开头钩子、镜头建议和口播，不要空话。结尾提醒用户下一步去发布台。',
       }
     }
     if (path.startsWith('/content')) {
       return {
         title: '发布台',
-        system: '你是自媒体发布教练。输出标题、封面、标签、发布时间、评论区引导和发布检查清单。',
+        system: '你是自媒体发布教练。输出标题、封面、标签、发布时间、评论区引导和发布检查清单。结尾提醒用户下一步去复盘台。',
       }
     }
     if (path.startsWith('/insights')) {
       return {
         title: '复盘台',
-        system: '你是自媒体复盘教练。用数据找问题，只输出可验证动作与下一步实验。',
+        system: '你是自媒体复盘教练。用数据找问题，只输出可验证动作与下一步实验。结尾提醒用户下一步去变现台或回到选题池。',
       }
     }
     if (path.startsWith('/customers')) {
       return {
         title: '变现台',
-        system: '你是自媒体变现教练。只输出私信、表单、成交和线索推进动作。',
+        system: '你是自媒体变现教练。只输出私信、表单、成交和线索推进动作。结尾提醒用户如果线索不够要回到发布台。',
       }
     }
     return {
@@ -214,7 +214,7 @@ function Layout() {
             <div className="flex-1 space-y-3 overflow-y-auto p-4">
               {assistantMessages.length === 0 ? (
                 <div className="text-sm leading-relaxed text-gray-600">
-                  <p className="mb-2 font-semibold text-gray-800">输入你的账号、选题或复盘问题，我会直接给可执行方案。</p>
+                  <p className="mb-2 font-semibold text-gray-800">输入你的账号、选题或复盘问题，我会直接给可执行方案，并告诉你下一步该去哪里。</p>
                   <ul className="list-disc space-y-1 pl-5">
                     <li>账号方向</li>
                     <li>选题和标题</li>
