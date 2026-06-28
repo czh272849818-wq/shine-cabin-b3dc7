@@ -3,10 +3,11 @@ import { FileText, Image as ImageIcon, Play, Sparkles, Video, ArrowRight } from 
 import clsx from 'clsx'
 import { Link } from 'react-router-dom'
 import { chatCompletionStream } from '@/services/llm'
+import { creatorPlatforms, type CreatorPlatform } from '@/services/workspace'
 
 type Mode = 'video' | 'graphic'
 type Goal = '涨粉' | '完播' | '转化'
-type Platform = '抖音' | '小红书' | '视频号' | 'B站'
+type Platform = Exclude<CreatorPlatform, '其他'>
 
 const contentMix = [
   { label: '人设', desc: '建立信任' },
@@ -14,10 +15,12 @@ const contentMix = [
   { label: '故事', desc: '扩大传播' },
 ]
 
+const platformOptions: Platform[] = creatorPlatforms.filter((item): item is Platform => item !== '其他')
+
 function ContentFactory() {
   const [mode, setMode] = useState<Mode>('video')
   const [goal, setGoal] = useState<Goal>('转化')
-  const [platform, setPlatform] = useState<Platform>('抖音')
+  const [selectedPlatforms, setSelectedPlatforms] = useState<Platform[]>(['抖音', '小红书'])
   const [topic, setTopic] = useState('')
   const [context, setContext] = useState('')
   const [loading, setLoading] = useState(false)
@@ -34,26 +37,28 @@ function ContentFactory() {
     setError('')
     setResult('')
     try {
+      const platformList = selectedPlatforms.length > 0 ? selectedPlatforms.join('、') : '抖音、小红书、视频号、B站、公众号'
       await chatCompletionStream([
-        { role: 'system', content: '你是自媒体发布教练。输出必须能直接复制执行，避免空话。' },
+        { role: 'system', content: '你是全平台自媒体发布教练。输出必须能直接复制执行，避免空话。' },
         {
           role: 'user',
           content: `
 内容形态：${mode === 'video' ? '短视频' : '图文'}
-平台：${platform}
 目标：${goal}
+需要输出的平台：${platformList}
 主题：${topic.trim()}
 背景：${context.trim() || '本地服务型IP，需要通过内容获客并转化线索。'}
 
 请输出：
-1. 适合该平台的标题10个
-2. 开头钩子3个
-3. 正文/口播脚本，按时间或段落拆分
-4. 画面/配图规划
-5. 评论区引导
-6. 私信关键词和回复话术
-7. 另外给出抖音、小红书、视频号、B站四个平台的改写建议
-8. 发布后看哪3个指标判断是否有效
+1. 一条主内容稿
+2. 适合各平台的标题10个
+3. 开头钩子3个
+4. 正文/口播脚本，按时间或段落拆分
+5. 画面/配图规划
+6. 评论区引导
+7. 私信关键词和回复话术
+8. 分别给出所选平台的改写建议
+9. 发布后看哪3个指标判断是否有效
 `.trim(),
         },
       ], {
@@ -91,16 +96,27 @@ function ContentFactory() {
             <span className="text-primary">平台</span>
           </div>
           <div className="mt-4 grid grid-cols-2 gap-2 md:grid-cols-4">
-            {(['抖音', '小红书', '视频号', 'B站'] as Platform[]).map((item) => (
+            {platformOptions.map((item) => (
               <button
                 key={item}
                 type="button"
-                onClick={() => setPlatform(item)}
-                className={clsx('rounded-lg border px-3 py-2 text-sm font-semibold', platform === item ? 'border-primary bg-primary text-white' : 'border-gray-200 text-gray-700')}
+                onClick={() => {
+                  setSelectedPlatforms((current) =>
+                    current.includes(item) ? current.filter((platform) => platform !== item) : [...current, item]
+                  )
+                }}
+                className={clsx(
+                  'rounded-lg border px-3 py-2 text-sm font-semibold',
+                  selectedPlatforms.includes(item) ? 'border-primary bg-primary text-white' : 'border-gray-200 text-gray-700'
+                )}
               >
                 {item}
               </button>
             ))}
+          </div>
+
+          <div className="mt-4 rounded-lg bg-gray-50 p-4 text-sm text-gray-600">
+            已选择平台：{selectedPlatforms.length > 0 ? selectedPlatforms.join('、') : '未选择，默认全平台'}
           </div>
 
           <div className="flex gap-2">
@@ -170,9 +186,9 @@ function ContentFactory() {
 
       <section className="rounded-lg border border-gray-200 bg-white p-5">
         <div className="flex items-center justify-between gap-4">
-          <div>
-            <h2 className="text-xl font-bold text-gray-950">下一步</h2>
-            <p className="mt-1 text-sm text-gray-500">发布后把数据带到复盘台，确认下一轮要优化什么。</p>
+        <div>
+          <h2 className="text-xl font-bold text-gray-950">下一步</h2>
+            <p className="mt-1 text-sm text-gray-500">发布后把数据带到复盘台，确认下一轮要优化哪个平台和哪种表达。</p>
           </div>
           <Link to="/insights" className="flex items-center gap-2 text-sm font-semibold text-primary">
             去复盘台

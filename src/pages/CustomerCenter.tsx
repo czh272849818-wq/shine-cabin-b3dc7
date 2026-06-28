@@ -4,12 +4,19 @@ import clsx from 'clsx'
 import { Link } from 'react-router-dom'
 import { chatCompletionStream } from '@/services/llm'
 import { useWorkspace } from '@/hooks/useWorkspace'
-import { emptyWorkspace, type Lead } from '@/services/workspace'
+import { creatorPlatforms, emptyWorkspace, type CreatorPlatform, type Lead } from '@/services/workspace'
 
 function CustomerCenter() {
   const [level, setLevel] = useState('全部')
   const [context, setContext] = useState('')
-  const [form, setForm] = useState({ name: '', source: '', level: 'A' as Lead['level'], status: '待跟进', need: '' })
+  const [form, setForm] = useState({
+    name: '',
+    source: '',
+    platform: '抖音' as Exclude<CreatorPlatform, '其他'>,
+    level: 'A' as Lead['level'],
+    status: '待跟进',
+    need: '',
+  })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [advice, setAdvice] = useState('')
@@ -30,13 +37,14 @@ function CustomerCenter() {
       id: crypto.randomUUID(),
       name: form.name.trim(),
       source: form.source.trim() || '未记录',
+      platform: form.platform,
       level: form.level,
       status: form.status.trim() || '待跟进',
       need: form.need.trim(),
       createdAt: new Date().toISOString(),
     }
     await save({ ...currentWorkspace, leads: [lead, ...currentWorkspace.leads] })
-    setForm({ name: '', source: '', level: 'A', status: '待跟进', need: '' })
+    setForm({ name: '', source: '', platform: '抖音', level: 'A', status: '待跟进', need: '' })
   }
 
   const generate = async () => {
@@ -53,7 +61,7 @@ function CustomerCenter() {
             content: `
 当前线索等级：${level}
 真实线索：
-${visibleLeads.map((lead) => `- ${lead.name} / ${lead.source} / ${lead.level}级 / ${lead.status} / ${lead.need || '未记录需求'}`).join('\n') || '暂无线索'}
+${visibleLeads.map((lead) => `- ${lead.name} / ${lead.source} / ${lead.platform} / ${lead.level}级 / ${lead.status} / ${lead.need || '未记录需求'}`).join('\n') || '暂无线索'}
 
 补充背景：${context.trim() || '通过短视频和图文获得咨询，需要把线索推进到预约或成交。'}
 
@@ -127,9 +135,20 @@ ${visibleLeads.map((lead) => `- ${lead.name} / ${lead.source} / ${lead.level}级
             <input
               value={form.source}
               onChange={(e) => setForm({ ...form, source: e.target.value })}
-              placeholder="来源：抖音/微信/转介绍"
+              placeholder="来源：视频号私信/微信/转介绍"
               className="h-11 rounded-lg border border-gray-200 px-3 text-sm outline-none focus:ring-2 focus:ring-primary/20"
             />
+            <select
+              value={form.platform}
+              onChange={(e) => setForm({ ...form, platform: e.target.value as Exclude<CreatorPlatform, '其他'> })}
+              className="h-11 rounded-lg border border-gray-200 px-3 text-sm outline-none focus:ring-2 focus:ring-primary/20"
+            >
+              {creatorPlatforms.filter((item): item is Exclude<CreatorPlatform, '其他'> => item !== '其他').map((item) => (
+                <option key={item} value={item}>
+                  {item}
+                </option>
+              ))}
+            </select>
             <select
               value={form.level}
               onChange={(e) => setForm({ ...form, level: e.target.value as Lead['level'] })}
@@ -180,7 +199,10 @@ ${visibleLeads.map((lead) => `- ${lead.name} / ${lead.source} / ${lead.level}级
               <div key={`${lead.name}-${lead.source}`} className="py-4">
                 <div className="flex items-center justify-between">
                   <p className="font-semibold text-gray-950">{lead.name}</p>
-                  <span className="rounded-full bg-gray-100 px-2 py-1 text-xs font-semibold text-gray-600">{lead.level}级</span>
+                  <div className="flex items-center gap-2">
+                    <span className="rounded-full bg-gray-100 px-2 py-1 text-xs font-semibold text-gray-600">{lead.platform}</span>
+                    <span className="rounded-full bg-gray-100 px-2 py-1 text-xs font-semibold text-gray-600">{lead.level}级</span>
+                  </div>
                 </div>
                 <p className="mt-1 text-sm text-gray-500">{lead.source} / {lead.status} / {lead.need}</p>
               </div>

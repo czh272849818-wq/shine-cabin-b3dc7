@@ -4,6 +4,7 @@ import clsx from 'clsx'
 import { Link } from 'react-router-dom'
 import { chatCompletionStream } from '@/services/llm'
 import { useWorkspace } from '@/hooks/useWorkspace'
+import { creatorPlatforms } from '@/services/workspace'
 
 const modules = [
   { title: '选题池', desc: '先找题，再做多平台复用', icon: Compass, href: '/analysis' },
@@ -21,6 +22,12 @@ function Dashboard() {
   const { workspace, loading: workspaceLoading, error: workspaceError } = useWorkspace()
   const leads = workspace?.leads ?? []
   const data = workspace?.metrics
+  const contentByPlatform = creatorPlatforms
+    .filter((platform) => platform !== '其他')
+    .map((platform) => ({
+      platform,
+      count: (workspace?.contents ?? []).filter((item) => item.platform === platform).length,
+    }))
   const conversionRate = leads.length > 0 && data ? (data.deals / leads.length) * 100 : 0
   const metrics = [
     { label: '本月线索', value: `${leads.length}` },
@@ -116,6 +123,27 @@ function Dashboard() {
             <p className="mt-3 text-3xl font-bold text-gray-950">{item.value}</p>
           </div>
         ))}
+      </section>
+
+      <section className="rounded-lg border border-gray-200 bg-white p-5">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <h2 className="text-xl font-bold text-gray-950">平台分布</h2>
+            <p className="mt-1 text-sm text-gray-500">看最近内容更集中在哪个平台，避免只发一个地方。</p>
+          </div>
+          <Link to="/content" className="flex items-center gap-2 text-sm font-semibold text-primary">
+            去发布台
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+        <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-5">
+          {contentByPlatform.map((item) => (
+            <div key={item.platform} className="rounded-lg bg-gray-50 p-4">
+              <p className="text-xs font-semibold text-gray-500">{item.platform}</p>
+              <p className="mt-2 text-2xl font-bold text-gray-950">{item.count}</p>
+            </div>
+          ))}
+        </div>
       </section>
 
       <section className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_1fr]">

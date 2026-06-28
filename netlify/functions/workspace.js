@@ -14,7 +14,7 @@ exports.handler = async (event) => {
 
   if (event.httpMethod === 'GET') {
     const saved = await store.get(key, { type: 'json' })
-    return json(200, saved || createEmptyWorkspace())
+    return json(200, sanitizeWorkspace(saved || createEmptyWorkspace()))
   }
 
   let body
@@ -75,6 +75,7 @@ function sanitizeLead(item) {
     id: stringValue(item.id) || cryptoId(),
     name: stringValue(item.name),
     source: stringValue(item.source),
+    platform: platformValue(item.platform, '其他'),
     level: ['A', 'B', 'C'].includes(item.level) ? item.level : 'C',
     status: stringValue(item.status) || '待跟进',
     need: stringValue(item.need),
@@ -97,11 +98,17 @@ function sanitizeContent(item) {
   if (!item || typeof item !== 'object') return null
   return {
     id: stringValue(item.id) || cryptoId(),
+    platform: platformValue(item.platform, '抖音'),
     title: stringValue(item.title),
     signal: stringValue(item.signal),
     completionRate: numberValue(item.completionRate),
     createdAt: stringValue(item.createdAt) || new Date().toISOString(),
   }
+}
+
+function platformValue(value, fallback) {
+  const platforms = ['抖音', '小红书', '视频号', 'B站', '公众号', '其他']
+  return platforms.includes(value) ? value : fallback
 }
 
 function stringValue(value) {

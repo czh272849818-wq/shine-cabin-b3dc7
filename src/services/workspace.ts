@@ -1,5 +1,8 @@
 export type AuthMode = 'login' | 'register'
 export type AuthMethod = 'email'
+export type CreatorPlatform = '抖音' | '小红书' | '视频号' | 'B站' | '公众号' | '其他'
+
+export const creatorPlatforms: CreatorPlatform[] = ['抖音', '小红书', '视频号', 'B站', '公众号', '其他']
 
 export type UserSession = {
   token: string
@@ -15,6 +18,7 @@ export type Lead = {
   id: string
   name: string
   source: string
+  platform: CreatorPlatform
   level: 'A' | 'B' | 'C'
   status: string
   need: string
@@ -32,6 +36,7 @@ export type WorkspaceMetrics = {
 
 export type ContentSignal = {
   id: string
+  platform: CreatorPlatform
   title: string
   signal: string
   completionRate: number
@@ -138,10 +143,38 @@ export function normalizeWorkspace(input: Partial<WorkspaceData> | null | undefi
   return {
     ...empty,
     ...input,
-    leads: Array.isArray(input?.leads) ? input.leads : [],
+    leads: Array.isArray(input?.leads) ? input.leads.map(normalizeLeadRecord) : [],
     metrics: { ...empty.metrics, ...(input?.metrics || {}) },
-    contents: Array.isArray(input?.contents) ? input.contents : [],
+    contents: Array.isArray(input?.contents) ? input.contents.map(normalizeContentRecord) : [],
   }
+}
+
+function normalizeLeadRecord(item: Partial<Lead>): Lead {
+  return {
+    id: item.id || cryptoRandomId(),
+    name: item.name || '',
+    source: item.source || '',
+    platform: creatorPlatforms.includes(item.platform as CreatorPlatform) ? (item.platform as CreatorPlatform) : '其他',
+    level: item.level === 'A' || item.level === 'B' || item.level === 'C' ? item.level : 'C',
+    status: item.status || '待跟进',
+    need: item.need || '',
+    createdAt: item.createdAt || new Date().toISOString(),
+  }
+}
+
+function normalizeContentRecord(item: Partial<ContentSignal>): ContentSignal {
+  return {
+    id: item.id || cryptoRandomId(),
+    platform: creatorPlatforms.includes(item.platform as CreatorPlatform) ? (item.platform as CreatorPlatform) : '抖音',
+    title: item.title || '',
+    signal: item.signal || '',
+    completionRate: Number(item.completionRate) || 0,
+    createdAt: item.createdAt || new Date().toISOString(),
+  }
+}
+
+function cryptoRandomId() {
+  return globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(16).slice(2)}`
 }
 
 function extractError(body: any, fallback: string) {

@@ -4,7 +4,7 @@ import clsx from 'clsx'
 import { Link } from 'react-router-dom'
 import { chatCompletionStream } from '@/services/llm'
 import { useWorkspace } from '@/hooks/useWorkspace'
-import { emptyWorkspace, type ContentSignal, type WorkspaceMetrics } from '@/services/workspace'
+import { creatorPlatforms, emptyWorkspace, type ContentSignal, type CreatorPlatform, type WorkspaceMetrics } from '@/services/workspace'
 
 function DataInsights() {
   const [context, setContext] = useState('')
@@ -17,6 +17,7 @@ function DataInsights() {
     deals: 0,
   })
   const [contentForm, setContentForm] = useState({ title: '', signal: '', completionRate: 0 })
+  const [contentPlatform, setContentPlatform] = useState<Exclude<CreatorPlatform, '其他'>>('抖音')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [advice, setAdvice] = useState('')
@@ -24,6 +25,12 @@ function DataInsights() {
   const currentWorkspace = workspace ?? emptyWorkspace()
   const metrics = currentWorkspace.metrics
   const topContent = currentWorkspace.contents
+  const platformCounts = creatorPlatforms
+    .filter((item): item is Exclude<CreatorPlatform, '其他'> => item !== '其他')
+    .map((platform) => ({
+      platform,
+      count: topContent.filter((item) => item.platform === platform).length,
+    }))
   const metricCards = [
     { label: '播放', value: formatNumber(metrics.plays), change: '用户录入', up: metrics.plays > 0 },
     { label: '粉丝', value: formatNumber(metrics.followers), change: '用户录入', up: metrics.followers > 0 },
@@ -48,6 +55,7 @@ function DataInsights() {
     }
     const item: ContentSignal = {
       id: crypto.randomUUID(),
+      platform: contentPlatform,
       title: contentForm.title.trim(),
       signal: contentForm.signal.trim() || '未记录信号',
       completionRate: Number(contentForm.completionRate) || 0,
@@ -78,7 +86,7 @@ function DataInsights() {
 - 成交数：${metrics.deals}
 
 TOP内容：
-${topContent.map((item) => `- ${item.title} / ${item.signal} / 完播${item.completionRate}%`).join('\n') || '暂无内容数据'}
+${topContent.map((item) => `- ${item.platform} / ${item.title} / ${item.signal} / 完播${item.completionRate}%`).join('\n') || '暂无内容数据'}
 
 补充背景：${context.trim() || '目标是提升内容到线索的转化。'}
 
@@ -145,7 +153,27 @@ ${topContent.map((item) => `- ${item.title} / ${item.signal} / 完播${item.comp
             <BarChart3 className="h-4 w-4 text-primary" />
             内容信号
           </div>
+          <div className="mb-4 grid grid-cols-2 gap-2 md:grid-cols-4">
+            {platformCounts.map((item) => (
+              <div key={item.platform} className="rounded-lg bg-gray-50 p-3">
+                <p className="text-xs font-semibold text-gray-500">{item.platform}</p>
+                <p className="mt-2 text-2xl font-bold text-gray-950">{item.count}</p>
+              </div>
+            ))}
+          </div>
           <form onSubmit={addContent} className="mb-4 grid grid-cols-1 gap-3">
+            <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
+              {(['抖音', '小红书', '视频号', 'B站', '公众号'] as Exclude<CreatorPlatform, '其他'>[]).map((item) => (
+                <button
+                  key={item}
+                  type="button"
+                  onClick={() => setContentPlatform(item)}
+                  className={clsx('rounded-lg border px-3 py-2 text-sm font-semibold', contentPlatform === item ? 'border-primary bg-primary text-white' : 'border-gray-200 text-gray-700')}
+                >
+                  {item}
+                </button>
+              ))}
+            </div>
             <input
               value={contentForm.title}
               onChange={(e) => setContentForm({ ...contentForm, title: e.target.value })}
@@ -180,7 +208,10 @@ ${topContent.map((item) => `- ${item.title} / ${item.signal} / 完播${item.comp
             {topContent.map((item) => (
               <div key={item.title} className="py-4">
                 <div className="flex items-center justify-between gap-4">
-                  <p className="font-semibold text-gray-950">{item.title}</p>
+                  <div>
+                    <p className="font-semibold text-gray-950">{item.title}</p>
+                    <p className="mt-1 text-xs font-semibold text-primary">{item.platform}</p>
+                  </div>
                   <span className="text-sm font-bold text-primary">{item.completionRate.toFixed(1)}%</span>
                 </div>
                 <p className="mt-1 text-sm text-gray-500">{item.signal}</p>
