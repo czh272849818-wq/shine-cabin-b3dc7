@@ -21,7 +21,7 @@ const platformOptions: Platform[] = creatorPlatforms.filter((item): item is Plat
 function ContentFactory() {
   const [mode, setMode] = useState<Mode>('video')
   const [goal, setGoal] = useState<Goal>('转化')
-  const [selectedPlatforms, setSelectedPlatforms] = useState<Platform[]>(['抖音', '小红书'])
+  const [selectedPlatforms, setSelectedPlatforms] = useState<Platform[]>(platformOptions)
   const [topic, setTopic] = useState('')
   const [context, setContext] = useState('')
   const [loading, setLoading] = useState(false)
@@ -134,6 +134,23 @@ function ContentFactory() {
                 {item}
               </button>
             ))}
+          </div>
+
+          <div className="mt-3 flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => setSelectedPlatforms(platformOptions)}
+              className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+            >
+              全选
+            </button>
+            <button
+              type="button"
+              onClick={() => setSelectedPlatforms([])}
+              className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+            >
+              清空
+            </button>
           </div>
 
           <div className="mt-4 rounded-lg bg-gray-50 p-4 text-sm text-gray-600">
