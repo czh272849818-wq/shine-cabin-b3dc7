@@ -7,9 +7,10 @@ import ContentFactory from './pages/ContentFactory'
 import CustomerCenter from './pages/CustomerCenter'
 import DataInsights from './pages/DataInsights'
 import Login from './pages/Login'
+import { getSession } from './services/workspace'
 
 function RequireAuth({ children }: { children: JSX.Element }) {
-  const isAuthed = localStorage.getItem('shine_cabin_session') === 'active'
+  const isAuthed = Boolean(getSession())
   return isAuthed ? children : <Navigate to="/login" replace />
 }
 

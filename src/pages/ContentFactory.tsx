@@ -7,9 +7,9 @@ type Mode = 'video' | 'graphic'
 type Goal = '涨粉' | '完播' | '转化'
 
 const contentMix = [
-  { label: '人设', value: '20%', desc: '建立信任' },
-  { label: '科普', value: '50%', desc: '解决问题' },
-  { label: '故事', value: '30%', desc: '扩大传播' },
+  { label: '人设', desc: '建立信任' },
+  { label: '科普', desc: '解决问题' },
+  { label: '故事', desc: '扩大传播' },
 ]
 
 function ContentFactory() {
@@ -136,7 +136,7 @@ function ContentFactory() {
               <div key={item.label} className="rounded-lg bg-gray-50 p-4">
                 <div className="flex items-center justify-between">
                   <span className="font-semibold text-gray-950">{item.label}</span>
-                  <span className="text-sm font-bold text-primary">{item.value}</span>
+                  <span className="text-sm font-bold text-primary">由AI判断</span>
                 </div>
                 <p className="mt-1 text-sm text-gray-600">{item.desc}</p>
               </div>

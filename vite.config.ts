@@ -1,9 +1,29 @@
 import { defineConfig, loadEnv, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'path'
+import * as crypto from 'crypto'
+
+type UserRecord = {
+  id: string
+  method: 'phone' | 'email'
+  displayName: string
+  passwordSalt: string
+  passwordHash: string
+}
+
+type SessionRecord = {
+  token: string
+  userId: string
+  displayName: string
+  method: 'phone' | 'email'
+  expiresAt: string
+}
 
 function llmProxyPlugin(apiKey: string | undefined): Plugin {
   let runtimeKey: string | undefined
+  const users = new Map<string, UserRecord>()
+  const sessions = new Map<string, SessionRecord>()
+  const workspaces = new Map<string, unknown>()
 
   return {
     name: 'llm-proxy',
@@ -138,7 +158,169 @@ function llmProxyPlugin(apiKey: string | undefined): Plugin {
           next()
         })
       })
+
+      server.middlewares.use('/api/auth', (req, res) => {
+        if (req.method === 'OPTIONS') {
+          res.statusCode = 204
+          res.end()
+          return
+        }
+        if (req.method !== 'POST') {
+          sendJson(res, 405, { error: 'Method Not Allowed' })
+          return
+        }
+        readJson(req)
+          .then((body) => {
+            const mode = body.mode === 'register' ? 'register' : 'login'
+            const method = body.method
+            const identifier = normalize(body.identifier)
+            const password = typeof body.password === 'string' ? body.password : ''
+            const name = normalize(body.name)
+            if (method === 'wechat') {
+              sendJson(res, 501, { error: '微信登录需要先配置 WECHAT_APP_ID、WECHAT_APP_SECRET 和微信回调服务。' })
+              return
+            }
+            if (method !== 'phone' && method !== 'email') {
+              sendJson(res, 400, { error: 'Unsupported auth method' })
+              return
+            }
+            if (!identifier) {
+              sendJson(res, 400, { error: method === 'phone' ? '请输入手机号' : '请输入邮箱' })
+              return
+            }
+            if (password.length < 6) {
+              sendJson(res, 400, { error: '密码至少 6 位' })
+              return
+            }
+            const userKey = `${method}-${sha(identifier)}`
+            const existing = users.get(userKey)
+            if (mode === 'register') {
+              if (existing) {
+                sendJson(res, 409, { error: '账号已存在，请直接登录' })
+                return
+              }
+              const salt = crypto.randomBytes(16).toString('hex')
+              const user: UserRecord = {
+                id: crypto.randomUUID(),
+                method,
+                displayName: name || maskIdentifier(identifier, method),
+                passwordSalt: salt,
+                passwordHash: hashPassword(password, salt),
+              }
+              users.set(userKey, user)
+              sendJson(res, 200, { session: createSession(sessions, user) })
+              return
+            }
+            if (!existing) {
+              sendJson(res, 404, { error: '账号不存在，请先注册' })
+              return
+            }
+            if (existing.passwordHash !== hashPassword(password, existing.passwordSalt)) {
+              sendJson(res, 401, { error: '密码错误' })
+              return
+            }
+            sendJson(res, 200, { session: createSession(sessions, existing) })
+          })
+          .catch((e) => sendJson(res, 400, { error: e instanceof Error ? e.message : 'Invalid JSON' }))
+      })
+
+      server.middlewares.use('/api/workspace', (req, res) => {
+        if (req.method === 'OPTIONS') {
+          res.statusCode = 204
+          res.end()
+          return
+        }
+        const session = readLocalSession(sessions, req.headers.authorization)
+        if (!session) {
+          sendJson(res, 401, { error: '请先登录' })
+          return
+        }
+        if (req.method === 'GET') {
+          sendJson(res, 200, workspaces.get(session.userId) || emptyWorkspace())
+          return
+        }
+        if (req.method !== 'PUT') {
+          sendJson(res, 405, { error: 'Method Not Allowed' })
+          return
+        }
+        readJson(req)
+          .then((body) => {
+            const next = { ...emptyWorkspace(), ...body, updatedAt: new Date().toISOString() }
+            workspaces.set(session.userId, next)
+            sendJson(res, 200, next)
+          })
+          .catch((e) => sendJson(res, 400, { error: e instanceof Error ? e.message : 'Invalid JSON' }))
+      })
     },
+  }
+}
+
+function readJson(req: import('http').IncomingMessage): Promise<any> {
+  const chunks: Buffer[] = []
+  return new Promise((resolve, reject) => {
+    req.on('data', (c) => chunks.push(Buffer.isBuffer(c) ? c : Buffer.from(c)))
+    req.on('end', () => {
+      try {
+        resolve(JSON.parse(Buffer.concat(chunks).toString('utf-8') || '{}'))
+      } catch (e) {
+        reject(e)
+      }
+    })
+    req.on('error', reject)
+  })
+}
+
+function sendJson(res: import('http').ServerResponse, statusCode: number, body: unknown) {
+  res.statusCode = statusCode
+  res.setHeader('Content-Type', 'application/json')
+  res.end(JSON.stringify(body))
+}
+
+function normalize(value: unknown) {
+  return typeof value === 'string' ? value.trim().toLowerCase() : ''
+}
+
+function sha(value: string) {
+  return crypto.createHash('sha256').update(value).digest('hex')
+}
+
+function hashPassword(password: string, salt: string) {
+  return crypto.pbkdf2Sync(password, salt, 120000, 32, 'sha256').toString('hex')
+}
+
+function maskIdentifier(identifier: string, method: 'phone' | 'email') {
+  if (method === 'phone') return `${identifier.slice(0, 3)}****${identifier.slice(-4)}`
+  const [name, domain] = identifier.split('@')
+  return domain ? `${name.slice(0, 2)}***@${domain}` : identifier
+}
+
+function createSession(sessions: Map<string, SessionRecord>, user: UserRecord) {
+  const token = crypto.randomBytes(32).toString('hex')
+  const session = {
+    token,
+    expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+    user: { id: user.id, name: user.displayName, method: user.method },
+  }
+  sessions.set(token, { token, userId: user.id, displayName: user.displayName, method: user.method, expiresAt: session.expiresAt })
+  return session
+}
+
+function readLocalSession(sessions: Map<string, SessionRecord>, authorization: string | undefined) {
+  const token = authorization?.startsWith('Bearer ') ? authorization.slice('Bearer '.length) : ''
+  if (!token) return null
+  const session = sessions.get(token)
+  if (!session || new Date(session.expiresAt).getTime() < Date.now()) return null
+  return session
+}
+
+function emptyWorkspace() {
+  const now = new Date().toISOString()
+  return {
+    leads: [],
+    metrics: { plays: 0, followers: 0, engagementRate: 0, completionRate: 0, conversions: 0, deals: 0 },
+    contents: [],
+    createdAt: now,
+    updatedAt: now,
   }
 }
 

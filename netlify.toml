@@ -16,6 +16,16 @@
   status = 200
 
 [[redirects]]
+  from = "/api/auth"
+  to = "/.netlify/functions/auth"
+  status = 200
+
+[[redirects]]
+  from = "/api/workspace"
+  to = "/.netlify/functions/workspace"
+  status = 200
+
+[[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200

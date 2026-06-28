@@ -2,15 +2,13 @@ import { useMemo, useState } from 'react'
 import { Eye, EyeOff, Mail, MessageCircle, Orbit, Phone, ShieldCheck } from 'lucide-react'
 import clsx from 'clsx'
 import { useNavigate } from 'react-router-dom'
-
-type AuthMode = 'login' | 'register'
-type AuthMethod = 'phone' | 'email' | 'wechat'
+import { authenticate, saveSession, type AuthMethod, type AuthMode } from '@/services/workspace'
 
 const methodMeta = {
   phone: {
     label: '手机号',
     icon: Phone,
-    hint: '使用手机号和验证码登录，适合移动端用户。',
+    hint: '使用手机号和密码登录，适合移动端用户。',
   },
   email: {
     label: '邮箱',
@@ -32,65 +30,48 @@ function Login() {
   const [phone, setPhone] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [code, setCode] = useState('')
   const [notice, setNotice] = useState('')
+  const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
 
   const selectedMethod = useMemo(() => methodMeta[method], [method])
 
-  const enterApp = (label: string) => {
-    localStorage.setItem('shine_cabin_session', 'active')
-    localStorage.setItem(
-      'shine_cabin_user',
-      JSON.stringify({
-        method,
-        name: name.trim() || (method === 'phone' ? phone : method === 'email' ? email : '微信用户'),
-        loginAt: new Date().toISOString(),
-      })
-    )
-    setNotice(label)
-    navigate('/')
-  }
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (loading) return
 
-    if (method === 'phone') {
-      if (!phone.trim()) {
-        setNotice('请输入手机号')
-        return
-      }
-      if (!code.trim()) {
-        setNotice('请输入验证码。当前版本为演示验证码流程，正式短信需接入短信服务。')
-        return
-      }
-      enterApp(authMode === 'login' ? '手机号登录成功' : '手机号注册成功')
+    if (method === 'wechat') {
+      setNotice('微信登录需要先在 Netlify 配置微信开放平台 AppID/Secret 与回调服务。')
       return
     }
 
-    if (method === 'email') {
-      if (!email.trim()) {
-        setNotice('请输入邮箱')
-        return
-      }
-      if (!password.trim()) {
-        setNotice('请输入密码')
-        return
-      }
-      enterApp(authMode === 'login' ? '邮箱登录成功' : '邮箱注册成功')
+    const identifier = method === 'phone' ? phone.trim() : email.trim()
+    if (!identifier) {
+      setNotice(method === 'phone' ? '请输入手机号' : '请输入邮箱')
+      return
+    }
+    if (password.length < 6) {
+      setNotice('请输入至少 6 位密码')
       return
     }
 
-    enterApp('微信授权成功')
-  }
-
-  const sendCode = () => {
-    if (!phone.trim()) {
-      setNotice('先输入手机号，再获取验证码')
-      return
+    setLoading(true)
+    setNotice('')
+    try {
+      const session = await authenticate({
+        mode: authMode,
+        method,
+        identifier,
+        password,
+        name,
+      })
+      saveSession(session)
+      navigate('/')
+    } catch (e) {
+      setNotice(e instanceof Error ? e.message : '登录失败')
+    } finally {
+      setLoading(false)
     }
-    setCode('123456')
-    setNotice('演示验证码已填入：123456。正式上线需接入短信服务。')
   }
 
   return (
@@ -113,12 +94,12 @@ function Login() {
               让每个用户都能从登录开始进入自己的增长工作台。
             </h1>
             <p className="mt-5 max-w-md text-sm leading-6 text-gray-600">
-              当前版本支持邮箱、手机号、微信三种入口。短信和微信正式上线需要接入对应服务商密钥。
+              当前版本支持邮箱/手机号密码注册登录；微信入口预留给正式开放平台授权。
             </p>
           </div>
 
           <div className="grid gap-3 text-sm text-gray-600">
-            {['邮箱密码适合团队成员', '手机号验证码适合客户快速进入', '微信授权适合中国用户习惯'].map((item) => (
+            {['账号数据进入云端存储', '手机号/邮箱可真实注册登录', '微信授权需要服务商配置'].map((item) => (
               <div key={item} className="flex items-center gap-2">
                 <ShieldCheck className="h-4 w-4 text-emerald-600" />
                 {item}
@@ -201,21 +182,22 @@ function Login() {
                     />
                   </div>
                   <div>
-                    <label className="text-sm font-semibold text-gray-700">验证码</label>
-                    <div className="mt-2 flex gap-2">
+                    <label className="text-sm font-semibold text-gray-700">密码</label>
+                    <div className="relative mt-2">
                       <input
-                        value={code}
-                        onChange={(e) => setCode(e.target.value)}
-                        placeholder="6位验证码"
-                        inputMode="numeric"
-                        className="h-11 flex-1 rounded-lg border border-gray-200 px-4 text-sm outline-none focus:ring-2 focus:ring-primary/20"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        type={showPassword ? 'text' : 'password'}
+                        placeholder={authMode === 'login' ? '请输入密码' : '设置登录密码'}
+                        className="h-11 w-full rounded-lg border border-gray-200 px-4 pr-11 text-sm outline-none focus:ring-2 focus:ring-primary/20"
                       />
                       <button
                         type="button"
-                        onClick={sendCode}
-                        className="h-11 rounded-lg border border-gray-200 px-4 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+                        aria-label="切换密码显示"
                       >
-                        获取
+                        {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                       </button>
                     </div>
                   </div>
@@ -262,19 +244,25 @@ function Login() {
                   <MessageCircle className="mx-auto h-10 w-10 text-primary" />
                   <p className="mt-3 text-sm font-semibold text-gray-950">微信授权入口</p>
                   <p className="mt-2 text-xs leading-5 text-gray-500">
-                    当前为产品演示入口。正式上线时接入微信开放平台 AppID、回调地址和服务端换码逻辑。
+                    微信真实登录需要微信开放平台 AppID、Secret、回调域名与服务端换码逻辑。配置完成后可启用。
                   </p>
                 </div>
               ) : null}
 
               {notice ? <div className="rounded-lg bg-amber-50 p-3 text-sm text-amber-800">{notice}</div> : null}
 
-              <button type="submit" className="h-11 w-full rounded-lg bg-primary text-sm font-semibold text-white hover:bg-primary-light">
+              <button
+                type="submit"
+                disabled={loading}
+                className={clsx('h-11 w-full rounded-lg text-sm font-semibold text-white', loading ? 'bg-gray-300' : 'bg-primary hover:bg-primary-light')}
+              >
                 {method === 'wechat'
                   ? '使用微信继续'
-                  : authMode === 'login'
-                    ? '进入工作台'
-                    : '创建账号'}
+                  : loading
+                    ? '处理中'
+                    : authMode === 'login'
+                      ? '进入工作台'
+                      : '创建账号'}
               </button>
             </form>
           </div>

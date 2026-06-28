@@ -1,26 +1,60 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ArrowDown, ArrowRight, ArrowUp, BarChart3, Sparkles } from 'lucide-react'
 import clsx from 'clsx'
 import { chatCompletion } from '@/services/llm'
-
-const metrics = [
-  { label: '播放', value: '2.3M', change: '+28.3%', up: true },
-  { label: '粉丝', value: '125.6K', change: '+12.5%', up: true },
-  { label: '互动', value: '5.8%', change: '+0.8%', up: true },
-  { label: '完播', value: '42.3%', change: '-2.1%', up: false },
-]
-
-const topContent = [
-  { title: '王奶奶终于下楼晒太阳了', signal: '故事强，完播高', completion: '68%' },
-  { title: '2026年最新补贴政策解读', signal: '政策强，收藏高', completion: '52%' },
-  { title: '老旧小区加装电梯的5个坑', signal: '避坑强，转化高', completion: '48%' },
-]
+import { useWorkspace } from '@/hooks/useWorkspace'
+import { emptyWorkspace, type ContentSignal, type WorkspaceMetrics } from '@/services/workspace'
 
 function DataInsights() {
   const [context, setContext] = useState('')
+  const [metricForm, setMetricForm] = useState<WorkspaceMetrics>({
+    plays: 0,
+    followers: 0,
+    engagementRate: 0,
+    completionRate: 0,
+    conversions: 0,
+    deals: 0,
+  })
+  const [contentForm, setContentForm] = useState({ title: '', signal: '', completionRate: 0 })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [advice, setAdvice] = useState('')
+  const { workspace, loading: workspaceLoading, saving, error: workspaceError, save } = useWorkspace()
+  const currentWorkspace = workspace ?? emptyWorkspace()
+  const metrics = currentWorkspace.metrics
+  const topContent = currentWorkspace.contents
+  const metricCards = [
+    { label: '播放', value: formatNumber(metrics.plays), change: '用户录入', up: metrics.plays > 0 },
+    { label: '粉丝', value: formatNumber(metrics.followers), change: '用户录入', up: metrics.followers > 0 },
+    { label: '互动', value: `${metrics.engagementRate.toFixed(1)}%`, change: '用户录入', up: metrics.engagementRate > 0 },
+    { label: '完播', value: `${metrics.completionRate.toFixed(1)}%`, change: '用户录入', up: metrics.completionRate > 0 },
+  ]
+
+  useEffect(() => {
+    if (workspace) setMetricForm(workspace.metrics)
+  }, [workspace])
+
+  const saveMetrics = async (e: React.FormEvent) => {
+    e.preventDefault()
+    await save({ ...currentWorkspace, metrics: metricForm })
+  }
+
+  const addContent = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!contentForm.title.trim()) {
+      setError('请输入内容标题')
+      return
+    }
+    const item: ContentSignal = {
+      id: crypto.randomUUID(),
+      title: contentForm.title.trim(),
+      signal: contentForm.signal.trim() || '未记录信号',
+      completionRate: Number(contentForm.completionRate) || 0,
+      createdAt: new Date().toISOString(),
+    }
+    await save({ ...currentWorkspace, contents: [item, ...currentWorkspace.contents] })
+    setContentForm({ title: '', signal: '', completionRate: 0 })
+  }
 
   const generate = async () => {
     if (loading) return
@@ -35,10 +69,15 @@ function DataInsights() {
             role: 'user',
             content: `
 核心指标：
-${metrics.map((item) => `- ${item.label}: ${item.value} (${item.change})`).join('\n')}
+- 播放：${metrics.plays}
+- 粉丝：${metrics.followers}
+- 互动率：${metrics.engagementRate}%
+- 完播率：${metrics.completionRate}%
+- 线索数：${currentWorkspace.leads.length}
+- 成交数：${metrics.deals}
 
 TOP内容：
-${topContent.map((item) => `- ${item.title} / ${item.signal} / 完播${item.completion}`).join('\n')}
+${topContent.map((item) => `- ${item.title} / ${item.signal} / 完播${item.completionRate}%`).join('\n') || '暂无内容数据'}
 
 补充背景：${context.trim() || '目标是提升内容到线索的转化。'}
 
@@ -81,7 +120,7 @@ ${topContent.map((item) => `- ${item.title} / ${item.signal} / 完播${item.comp
       </header>
 
       <section className="grid grid-cols-1 gap-4 md:grid-cols-4">
-        {metrics.map((item) => (
+        {metricCards.map((item) => (
           <div key={item.label} className="rounded-lg border border-gray-200 bg-white p-5">
             <div className="flex items-center justify-between">
               <p className="text-sm text-gray-500">{item.label}</p>
@@ -93,18 +132,52 @@ ${topContent.map((item) => `- ${item.title} / ${item.signal} / 完播${item.comp
         ))}
       </section>
 
+      {workspaceLoading ? <div className="rounded-lg border border-gray-200 bg-white p-4 text-sm text-gray-500">正在读取云端数据...</div> : null}
+      {workspaceError || error ? <div className="rounded-lg border border-red-100 bg-red-50 p-4 text-sm text-red-700">{workspaceError || error}</div> : null}
+
       <section className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_1fr]">
         <div className="rounded-lg border border-gray-200 bg-white p-5">
           <div className="mb-4 flex items-center gap-2 text-sm font-semibold text-gray-950">
             <BarChart3 className="h-4 w-4 text-primary" />
             内容信号
           </div>
+          <form onSubmit={addContent} className="mb-4 grid grid-cols-1 gap-3">
+            <input
+              value={contentForm.title}
+              onChange={(e) => setContentForm({ ...contentForm, title: e.target.value })}
+              placeholder="内容标题"
+              className="h-11 rounded-lg border border-gray-200 px-3 text-sm outline-none focus:ring-2 focus:ring-primary/20"
+            />
+            <input
+              value={contentForm.signal}
+              onChange={(e) => setContentForm({ ...contentForm, signal: e.target.value })}
+              placeholder="内容信号：收藏高/评论多/转化好"
+              className="h-11 rounded-lg border border-gray-200 px-3 text-sm outline-none focus:ring-2 focus:ring-primary/20"
+            />
+            <div className="grid grid-cols-[1fr_auto] gap-2">
+              <input
+                value={contentForm.completionRate}
+                onChange={(e) => setContentForm({ ...contentForm, completionRate: Number(e.target.value) })}
+                placeholder="完播率"
+                type="number"
+                min="0"
+                step="0.1"
+                className="h-11 rounded-lg border border-gray-200 px-3 text-sm outline-none focus:ring-2 focus:ring-primary/20"
+              />
+              <button type="submit" disabled={saving} className={clsx('h-11 rounded-lg px-4 text-sm font-semibold text-white', saving ? 'bg-gray-300' : 'bg-primary')}>
+                添加
+              </button>
+            </div>
+          </form>
           <div className="divide-y divide-gray-100">
+            {topContent.length === 0 ? (
+              <div className="rounded-lg bg-gray-50 p-5 text-sm text-gray-500">暂无内容数据。录入真实内容表现后，再做诊断。</div>
+            ) : null}
             {topContent.map((item) => (
               <div key={item.title} className="py-4">
                 <div className="flex items-center justify-between gap-4">
                   <p className="font-semibold text-gray-950">{item.title}</p>
-                  <span className="text-sm font-bold text-primary">{item.completion}</span>
+                  <span className="text-sm font-bold text-primary">{item.completionRate.toFixed(1)}%</span>
                 </div>
                 <p className="mt-1 text-sm text-gray-500">{item.signal}</p>
               </div>
@@ -113,6 +186,31 @@ ${topContent.map((item) => `- ${item.title} / ${item.signal} / 完播${item.comp
         </div>
 
         <div className="rounded-lg border border-gray-200 bg-white p-5">
+          <form onSubmit={saveMetrics} className="mb-5 grid grid-cols-2 gap-3">
+            {([
+              ['plays', '播放'],
+              ['followers', '粉丝'],
+              ['engagementRate', '互动率%'],
+              ['completionRate', '完播率%'],
+              ['conversions', '线索数'],
+              ['deals', '成交数'],
+            ] as const).map(([key, label]) => (
+              <label key={key} className="text-sm font-semibold text-gray-950">
+                {label}
+                <input
+                  value={metricForm[key]}
+                  onChange={(e) => setMetricForm({ ...metricForm, [key]: Number(e.target.value) })}
+                  type="number"
+                  min="0"
+                  step="0.1"
+                  className="mt-2 h-11 w-full rounded-lg border border-gray-200 px-3 text-sm font-normal outline-none focus:ring-2 focus:ring-primary/20"
+                />
+              </label>
+            ))}
+            <button type="submit" disabled={saving} className={clsx('col-span-2 h-11 rounded-lg text-sm font-semibold text-white', saving ? 'bg-gray-300' : 'bg-primary')}>
+              {saving ? '保存中' : '保存指标'}
+            </button>
+          </form>
           <label className="text-sm font-semibold text-gray-950">补充数据</label>
           <textarea
             value={context}
@@ -123,7 +221,6 @@ ${topContent.map((item) => `- ${item.title} / ${item.signal} / 完播${item.comp
         </div>
       </section>
 
-      {error ? <div className="rounded-lg border border-red-100 bg-red-50 p-4 text-sm text-red-700">{error}</div> : null}
       {advice ? (
         <section className="rounded-lg border border-gray-200 bg-white p-5">
           <div className="mb-4 flex items-center justify-between">
@@ -135,6 +232,11 @@ ${topContent.map((item) => `- ${item.title} / ${item.signal} / 完播${item.comp
       ) : null}
     </div>
   )
+}
+
+function formatNumber(value: number) {
+  if (value >= 10000) return `${(value / 10000).toFixed(1)}万`
+  return `${value}`
 }
 
 export default DataInsights

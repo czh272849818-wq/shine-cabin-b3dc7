@@ -2,13 +2,7 @@ import { useState } from 'react'
 import { ArrowRight, BarChart3, MessageSquare, Send, Sparkles, Target, Users } from 'lucide-react'
 import clsx from 'clsx'
 import { chatCompletion } from '@/services/llm'
-
-const metrics = [
-  { label: '本月线索', value: '128' },
-  { label: 'A级线索', value: '23' },
-  { label: '转化率', value: '23.5%' },
-  { label: '完播率', value: '42.3%' },
-]
+import { useWorkspace } from '@/hooks/useWorkspace'
 
 const modules = [
   { title: '行业分析', desc: '找到市场切口', icon: BarChart3 },
@@ -17,17 +11,26 @@ const modules = [
   { title: '客户中心', desc: '推进线索成交', icon: Users },
 ]
 
-const priorities = [
-  '先修复完播率：重写前3秒钩子',
-  '再提高转化：把评论和私信接到资料包',
-  '最后沉淀模板：保留有效脚本和跟进话术',
-]
-
 function Dashboard() {
   const [context, setContext] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [plan, setPlan] = useState('')
+  const { workspace, loading: workspaceLoading, error: workspaceError } = useWorkspace()
+  const leads = workspace?.leads ?? []
+  const data = workspace?.metrics
+  const conversionRate = leads.length > 0 && data ? (data.deals / leads.length) * 100 : 0
+  const metrics = [
+    { label: '本月线索', value: `${leads.length}` },
+    { label: 'A级线索', value: `${leads.filter((lead) => lead.level === 'A').length}` },
+    { label: '转化率', value: `${conversionRate.toFixed(1)}%` },
+    { label: '完播率', value: `${(data?.completionRate ?? 0).toFixed(1)}%` },
+  ]
+  const priorities = [
+    leads.length === 0 ? '先录入第一批真实线索，建立可跟进事实' : '优先跟进A级线索，确认下一步动作',
+    data?.completionRate ? '根据完播率筛选高潜内容，复刻结构' : '录入内容数据，找到真实内容约束',
+    data?.deals ? '复盘成交路径，沉淀成跟进模板' : '设置本周成交目标，开始记录成交数',
+  ]
 
   const generatePlan = async () => {
     if (loading) return
@@ -44,7 +47,17 @@ function Dashboard() {
           {
             role: 'user',
             content: `
-业务信息：${context.trim() || '本地服务型IP，通过内容获客并转化线索。'}
+真实业务数据：
+- 线索数：${leads.length}
+- A级线索：${leads.filter((lead) => lead.level === 'A').length}
+- 成交数：${data?.deals ?? 0}
+- 播放：${data?.plays ?? 0}
+- 粉丝：${data?.followers ?? 0}
+- 互动率：${data?.engagementRate ?? 0}%
+- 完播率：${data?.completionRate ?? 0}%
+- 内容信号：${(workspace?.contents ?? []).map((item) => `${item.title}/${item.signal}/${item.completionRate}%`).join('；') || '暂无'}
+
+补充信息：${context.trim() || '暂无补充。'}
 
 请输出：
 1. 一句话本质判断
@@ -91,6 +104,8 @@ function Dashboard() {
       </section>
 
       <section className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        {workspaceLoading ? <div className="col-span-full rounded-lg border border-gray-200 bg-white p-5 text-sm text-gray-500">正在读取云端数据...</div> : null}
+        {workspaceError ? <div className="col-span-full rounded-lg border border-red-100 bg-red-50 p-5 text-sm text-red-700">{workspaceError}</div> : null}
         {metrics.map((item) => (
           <div key={item.label} className="rounded-lg border border-gray-200 bg-white p-5">
             <p className="text-sm text-gray-500">{item.label}</p>
@@ -115,7 +130,7 @@ function Dashboard() {
         </div>
 
         <div className="rounded-lg border border-gray-200 bg-white p-5">
-          <h2 className="text-xl font-bold text-gray-950">默认优先级</h2>
+          <h2 className="text-xl font-bold text-gray-950">当前优先级</h2>
           <div className="mt-4 space-y-3">
             {priorities.map((item, index) => (
               <div key={item} className="flex gap-3 rounded-lg bg-gray-50 p-4">

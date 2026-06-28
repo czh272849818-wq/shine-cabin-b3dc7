@@ -1,4 +1,4 @@
-import { Outlet, Link, useLocation } from 'react-router-dom'
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom'
 import { useEffect, useMemo, useState } from 'react'
 import {
   Home,
@@ -14,6 +14,8 @@ import {
 } from 'lucide-react'
 import clsx from 'clsx'
 import { chatCompletion, type LlmMessage } from '@/services/llm'
+import { clearSession, getSession } from '@/services/workspace'
+import { useWorkspace } from '@/hooks/useWorkspace'
 
 const navigation = [
   { name: '工作台', href: '/', icon: Home },
@@ -26,6 +28,9 @@ const navigation = [
 
 function Layout() {
   const location = useLocation()
+  const navigate = useNavigate()
+  const session = getSession()
+  const { workspace } = useWorkspace()
   const [assistantOpen, setAssistantOpen] = useState(false)
   const [assistantDraft, setAssistantDraft] = useState('')
   const [assistantError, setAssistantError] = useState('')
@@ -170,6 +175,14 @@ function Layout() {
     }
   }
 
+  const logout = () => {
+    clearSession()
+    navigate('/login')
+  }
+
+  const leadCount = workspace?.leads.length ?? 0
+  const conversionRate = leadCount > 0 && workspace ? ((workspace.metrics.deals / leadCount) * 100).toFixed(1) : '0.0'
+
   return (
     <div className="min-h-screen bg-[#F4F7F6]">
       <aside className="fixed left-0 top-0 z-40 h-screen w-64 border-r border-gray-200 bg-white">
@@ -214,14 +227,21 @@ function Layout() {
                   V
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-gray-800">增长负责人</p>
-                  <p className="text-xs text-gray-500">作战版</p>
+                  <p className="text-sm font-semibold text-gray-800">{session?.user.name || '增长负责人'}</p>
+                  <p className="text-xs text-gray-500">{session?.user.method === 'phone' ? '手机号账号' : '邮箱账号'}</p>
                 </div>
               </div>
               <div className="text-xs text-gray-600">
-                <p>本月线索: <span className="font-bold text-primary">128</span></p>
-                <p>转化率: <span className="font-bold text-accent-orange">23.5%</span></p>
+                <p>线索: <span className="font-bold text-primary">{leadCount}</span></p>
+                <p>转化率: <span className="font-bold text-accent-orange">{conversionRate}%</span></p>
               </div>
+              <button
+                type="button"
+                onClick={logout}
+                className="mt-3 h-9 w-full rounded-lg border border-gray-200 bg-white text-xs font-semibold text-gray-600 hover:bg-gray-50"
+              >
+                退出登录
+              </button>
             </div>
           </div>
         </div>

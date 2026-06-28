@@ -5,12 +5,6 @@ import { chatCompletion } from '@/services/llm'
 
 const industries = ['建筑工程', '教育培训', '医疗健康', '金融服务', '餐饮美食', '房地产']
 
-const benchmarks = [
-  { label: '高频痛点', value: '信任不足' },
-  { label: '内容机会', value: '真实案例' },
-  { label: '成交阻力', value: '价格不透明' },
-]
-
 function IndustryAnalysis() {
   const [industry, setIndustry] = useState('建筑工程')
   const [context, setContext] = useState('')
@@ -98,13 +92,8 @@ function IndustryAnalysis() {
               </button>
             ))}
           </div>
-          <div className="mt-5 space-y-3">
-            {benchmarks.map((item) => (
-              <div key={item.label} className="flex items-center justify-between rounded-lg bg-gray-50 px-3 py-3 text-sm">
-                <span className="text-gray-500">{item.label}</span>
-                <span className="font-semibold text-gray-950">{item.value}</span>
-              </div>
-            ))}
+          <div className="mt-5 rounded-lg bg-gray-50 p-4 text-sm leading-6 text-gray-600">
+            输入业务背景后，AI 会根据你的真实产品、地区、客单价和客户类型生成行业机会、痛点与成交阻力。
           </div>
         </div>
 

@@ -2,22 +2,41 @@ import { useMemo, useState } from 'react'
 import { ArrowRight, MessageSquare, Phone, Sparkles, Users } from 'lucide-react'
 import clsx from 'clsx'
 import { chatCompletion } from '@/services/llm'
-
-const leads = [
-  { name: '张先生', source: '抖音', level: 'A', status: '待跟进', need: '想了解预算' },
-  { name: '李女士', source: '小红书', level: 'A', status: '已联系', need: '需要案例' },
-  { name: '王先生', source: '视频号', level: 'B', status: '待跟进', need: '比较价格' },
-  { name: '陈女士', source: '微信', level: 'B', status: '跟进中', need: '等家人决策' },
-]
+import { useWorkspace } from '@/hooks/useWorkspace'
+import { emptyWorkspace, type Lead } from '@/services/workspace'
 
 function CustomerCenter() {
   const [level, setLevel] = useState('全部')
   const [context, setContext] = useState('')
+  const [form, setForm] = useState({ name: '', source: '', level: 'A' as Lead['level'], status: '待跟进', need: '' })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [advice, setAdvice] = useState('')
+  const { workspace, loading: workspaceLoading, saving, error: workspaceError, save } = useWorkspace()
+  const currentWorkspace = workspace ?? emptyWorkspace()
+  const leads = currentWorkspace.leads
 
-  const visibleLeads = useMemo(() => leads.filter((lead) => level === '全部' || lead.level === level), [level])
+  const visibleLeads = useMemo(() => leads.filter((lead) => level === '全部' || lead.level === level), [leads, level])
+  const conversionRate = leads.length > 0 ? ((currentWorkspace.metrics.deals / leads.length) * 100).toFixed(1) : '0.0'
+
+  const addLead = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!form.name.trim()) {
+      setError('请输入客户名称')
+      return
+    }
+    const lead: Lead = {
+      id: crypto.randomUUID(),
+      name: form.name.trim(),
+      source: form.source.trim() || '未记录',
+      level: form.level,
+      status: form.status.trim() || '待跟进',
+      need: form.need.trim(),
+      createdAt: new Date().toISOString(),
+    }
+    await save({ ...currentWorkspace, leads: [lead, ...currentWorkspace.leads] })
+    setForm({ name: '', source: '', level: 'A', status: '待跟进', need: '' })
+  }
 
   const generate = async () => {
     if (loading) return
@@ -32,6 +51,9 @@ function CustomerCenter() {
             role: 'user',
             content: `
 当前线索等级：${level}
+真实线索：
+${visibleLeads.map((lead) => `- ${lead.name} / ${lead.source} / ${lead.level}级 / ${lead.status} / ${lead.need || '未记录需求'}`).join('\n') || '暂无线索'}
+
 补充背景：${context.trim() || '通过短视频和图文获得咨询，需要把线索推进到预约或成交。'}
 
 请输出：
@@ -74,9 +96,9 @@ function CustomerCenter() {
 
       <section className="grid grid-cols-1 gap-4 md:grid-cols-3">
         {[
-          { label: '总线索', value: '128', icon: Users },
-          { label: 'A级线索', value: '23', icon: Phone },
-          { label: '本周转化率', value: '23.5%', icon: MessageSquare },
+          { label: '总线索', value: `${leads.length}`, icon: Users },
+          { label: 'A级线索', value: `${leads.filter((lead) => lead.level === 'A').length}`, icon: Phone },
+          { label: '成交转化率', value: `${conversionRate}%`, icon: MessageSquare },
         ].map((item) => (
           <div key={item.label} className="rounded-lg border border-gray-200 bg-white p-5">
             <item.icon className="h-5 w-5 text-primary" />
@@ -86,8 +108,54 @@ function CustomerCenter() {
         ))}
       </section>
 
+      {workspaceLoading ? <div className="rounded-lg border border-gray-200 bg-white p-4 text-sm text-gray-500">正在读取云端线索...</div> : null}
+      {workspaceError || error ? <div className="rounded-lg border border-red-100 bg-red-50 p-4 text-sm text-red-700">{workspaceError || error}</div> : null}
+
       <section className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_1fr]">
         <div className="rounded-lg border border-gray-200 bg-white p-5">
+          <form onSubmit={addLead} className="mb-5 grid grid-cols-1 gap-3 md:grid-cols-2">
+            <input
+              value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+              placeholder="客户名称"
+              className="h-11 rounded-lg border border-gray-200 px-3 text-sm outline-none focus:ring-2 focus:ring-primary/20"
+            />
+            <input
+              value={form.source}
+              onChange={(e) => setForm({ ...form, source: e.target.value })}
+              placeholder="来源：抖音/微信/转介绍"
+              className="h-11 rounded-lg border border-gray-200 px-3 text-sm outline-none focus:ring-2 focus:ring-primary/20"
+            />
+            <select
+              value={form.level}
+              onChange={(e) => setForm({ ...form, level: e.target.value as Lead['level'] })}
+              className="h-11 rounded-lg border border-gray-200 px-3 text-sm outline-none focus:ring-2 focus:ring-primary/20"
+            >
+              <option value="A">A级</option>
+              <option value="B">B级</option>
+              <option value="C">C级</option>
+            </select>
+            <input
+              value={form.status}
+              onChange={(e) => setForm({ ...form, status: e.target.value })}
+              placeholder="状态"
+              className="h-11 rounded-lg border border-gray-200 px-3 text-sm outline-none focus:ring-2 focus:ring-primary/20"
+            />
+            <input
+              value={form.need}
+              onChange={(e) => setForm({ ...form, need: e.target.value })}
+              placeholder="需求/异议"
+              className="h-11 rounded-lg border border-gray-200 px-3 text-sm outline-none focus:ring-2 focus:ring-primary/20 md:col-span-2"
+            />
+            <button
+              type="submit"
+              disabled={saving}
+              className={clsx('h-11 rounded-lg text-sm font-semibold text-white md:col-span-2', saving ? 'bg-gray-300' : 'bg-primary')}
+            >
+              {saving ? '保存中' : '添加线索'}
+            </button>
+          </form>
+
           <div className="mb-4 flex gap-2">
             {['全部', 'A', 'B', 'C'].map((item) => (
               <button
@@ -101,6 +169,9 @@ function CustomerCenter() {
             ))}
           </div>
           <div className="divide-y divide-gray-100">
+            {visibleLeads.length === 0 ? (
+              <div className="rounded-lg bg-gray-50 p-5 text-sm text-gray-500">暂无线索。先添加真实客户，再让 AI 生成跟进策略。</div>
+            ) : null}
             {visibleLeads.map((lead) => (
               <div key={`${lead.name}-${lead.source}`} className="py-4">
                 <div className="flex items-center justify-between">
@@ -124,7 +195,6 @@ function CustomerCenter() {
         </div>
       </section>
 
-      {error ? <div className="rounded-lg border border-red-100 bg-red-50 p-4 text-sm text-red-700">{error}</div> : null}
       {advice ? (
         <section className="rounded-lg border border-gray-200 bg-white p-5">
           <div className="mb-4 flex items-center justify-between">
