@@ -3,7 +3,8 @@ import { FileText, Image as ImageIcon, Play, Sparkles, Video, ArrowRight } from 
 import clsx from 'clsx'
 import { Link } from 'react-router-dom'
 import { chatCompletionStream } from '@/services/llm'
-import { creatorPlatforms, type CreatorPlatform } from '@/services/workspace'
+import { creatorPlatforms, emptyWorkspace, type ContentSignal, type CreatorPlatform } from '@/services/workspace'
+import { useWorkspace } from '@/hooks/useWorkspace'
 
 type Mode = 'video' | 'graphic'
 type Goal = '涨粉' | '完播' | '转化'
@@ -26,6 +27,9 @@ function ContentFactory() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [result, setResult] = useState('')
+  const [notice, setNotice] = useState('')
+  const { workspace, save, saving } = useWorkspace()
+  const currentWorkspace = workspace ?? emptyWorkspace()
 
   const generate = async () => {
     if (!topic.trim()) {
@@ -35,11 +39,12 @@ function ContentFactory() {
     if (loading) return
     setLoading(true)
     setError('')
+    setNotice('')
     setResult('')
     try {
       const platformList = selectedPlatforms.length > 0 ? selectedPlatforms.join('、') : '抖音、小红书、视频号、B站、公众号'
       await chatCompletionStream([
-        { role: 'system', content: '你是全平台自媒体发布教练。输出必须能直接复制执行，避免空话。' },
+        { role: 'system', content: '你是全平台自媒体发布教练。输出必须能直接复制执行，避免空话；严格围绕用户给出的主题，不要引入无关案例。' },
         {
           role: 'user',
           content: `
@@ -59,6 +64,7 @@ function ContentFactory() {
 7. 私信关键词和回复话术
 8. 分别给出所选平台的改写建议
 9. 发布后看哪3个指标判断是否有效
+10. 不要擅自更换主题，不要使用无关的热点案例；如需示例，只能围绕当前主题展开
 `.trim(),
         },
       ], {
@@ -69,6 +75,21 @@ function ContentFactory() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const saveDraft = async () => {
+    if (!result.trim() || saving) return
+    const savePlatforms = selectedPlatforms.length > 0 ? selectedPlatforms : platformOptions
+    const drafts: ContentSignal[] = savePlatforms.map((platform) => ({
+      id: crypto.randomUUID(),
+      platform,
+      title: topic.trim() || '未命名主题',
+      signal: `AI草稿 / ${mode === 'video' ? '短视频' : '图文'} / ${goal}`,
+      completionRate: 0,
+      createdAt: new Date().toISOString(),
+    }))
+    await save({ ...currentWorkspace, contents: [...drafts, ...currentWorkspace.contents] })
+    setNotice(`已保存 ${drafts.length} 条平台草稿到内容库`)
   }
 
   return (
@@ -186,8 +207,8 @@ function ContentFactory() {
 
       <section className="rounded-lg border border-gray-200 bg-white p-5">
         <div className="flex items-center justify-between gap-4">
-        <div>
-          <h2 className="text-xl font-bold text-gray-950">下一步</h2>
+          <div>
+            <h2 className="text-xl font-bold text-gray-950">下一步</h2>
             <p className="mt-1 text-sm text-gray-500">发布后把数据带到复盘台，确认下一轮要优化哪个平台和哪种表达。</p>
           </div>
           <Link to="/insights" className="flex items-center gap-2 text-sm font-semibold text-primary">
@@ -198,6 +219,7 @@ function ContentFactory() {
       </section>
 
       {error ? <div className="rounded-lg border border-red-100 bg-red-50 p-4 text-sm text-red-700">{error}</div> : null}
+      {notice ? <div className="rounded-lg border border-emerald-100 bg-emerald-50 p-4 text-sm text-emerald-700">{notice}</div> : null}
       {result ? (
         <section className="rounded-lg border border-gray-200 bg-white p-5">
           <div className="mb-4 flex items-center justify-between">
@@ -205,6 +227,19 @@ function ContentFactory() {
             <FileText className="h-5 w-5 text-gray-400" />
           </div>
           <div className="whitespace-pre-wrap text-sm leading-7 text-gray-800">{result}</div>
+          <div className="mt-5 flex flex-wrap gap-3">
+            <button
+              type="button"
+              onClick={saveDraft}
+              disabled={saving}
+              className={clsx('rounded-lg px-4 py-2 text-sm font-semibold text-white', saving ? 'bg-gray-300' : 'bg-primary')}
+            >
+              {saving ? '保存中' : '保存到内容库'}
+            </button>
+            <Link to="/insights" className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">
+              去复盘台
+            </Link>
+          </div>
         </section>
       ) : null}
     </div>
